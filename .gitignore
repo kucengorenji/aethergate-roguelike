@@ -13,3 +13,6 @@ docs/progress/verify.json
 
 # Derived by `pnpm assets:player` from assets-src/player/build_player.py.
 assets-src/models/player.glb
+
+# Full-size concept originals stay local; 1280px WebP copies are committed.
+assets-src/concept/**/*.png
