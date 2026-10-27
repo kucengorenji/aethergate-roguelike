@@ -63,6 +63,7 @@ A test session opened with `?paused` renders only when the test hook asks for a 
 Clicking the canvas requests pointer lock; Esc releases it.
 Mouse movement and mouse buttons only count while locked, so the click that locks never fires a spell.
 `input.look` holds the mouse movement for the current fixed step; buttons are `Mouse0` (left) and `Mouse2` (right) in `isDown` and `wasPressed`.
+`input.lockLost` is true for the one fixed step after the browser or the player took the lock away (Esc, alt-tab), which pauses the game; `releasePointer` (a menu opening) does not set it.
 Tests cannot rely on real pointer lock, so the test hook has built-in actions: `act('pointerLock', 1)` and `act('look', dx, dy)`.
 
 ## Time scale and hitstop
@@ -101,8 +102,20 @@ The AI system handles phase changes; the attack system resolves each move; timed
 `src/game/save/` holds the versioned save record (`migrate` repairs or rejects what is stored) and its IndexedDB store; `state.save` is loaded before the first frame and `saveGame(ctx)` writes it, in order.
 `state.panel` names the open menu; `controlsLocked` includes it and opening one releases the pointer. `ctx.suspended` stops fixed steps from simulating while the scene keeps rendering (pause menu).
 
+The title, pause and settings panels are DOM sections in `index.html`, run by `src/game/ui/menus.ts`.
+Buttons and Esc change `state.panel` from DOM event handlers; the module's frame system only shows the open panel and moves keyboard focus into it.
+`pauseSystem` (first fixed system) opens the pause panel and suspends the game when `input.lockLost` is set during play.
+Settings sliders apply on `input` and save on `change`, so a drag writes once.
+Render quality (`src/game/quality.ts`, presets in `config.quality`) sets the renderer's pixel ratio and switches `castShadow` and the shadow map size on the scene's shadow-casting lights; `applySettings(ctx, config, renderer)` applies it with the other settings.
+
+## The hall and meta progression
+
+Without `?mode` the game runs in `hub` mode: the Kindled Hall (`systems/hub.ts`) between runs, with stations handled by the interact system.
+Upgrade and staff rules are pure (`src/game/meta/`); `applyLoadout` turns the save into the player's run stats at the start of each run, and `returnToHub` banks a run's shards and stats.
+
 ## Modes
 
+Without `?mode` the game opens on the title screen with a run behind it, as players see it; any `?mode` skips the title, which is what most tests want.
 `?mode=run` (default) plays a full run, `?mode=encounter` is the single three-wave chamber, `?mode=training` is the practice courtyard with the dummy and totem, `?mode=sandbox` is the empty arena for tests that spawn enemies themselves.
 
 ## Audio

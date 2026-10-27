@@ -7,6 +7,9 @@ See `docs/workflows/progress.md`.
 
 ## 2026-10-27
 
+- M5: Spec 0010 done: the Kindled Hall (grace site, altar of six upgrades, staff rack with Lance and Scatter), shards banked after every run, boss shard drops, Abandon run in the pause menu. Verify green, 166 unit and 109 E2E tests. M5 exit check waits for a playtest.
+- M5: Spec 0012 merged (built by a parallel agent in a Herdr pane): title screen, pause on lost pointer lock, settings for sensitivity, volume and Low/Medium/High quality, saved and restored; menus work with Tab, Enter and Esc.
+- M6: Planned with Mikael: painterly low-poly style, style frames approved before modeling, 40 MB asset budget, UAL plus custom animation, all audio from ElevenLabs (free tier: non-commercial, a release blocker until upgraded and regenerated), at most three parallel agents.
 - M5: Fixed the staff-rack panel to refresh immediately after unlock and equip; the Lance and Scatter E2E checks now pass, and the three new Kindled Hall visual baselines were reviewed and captured.
 - --: Installed the local ElevenLabs MCP for Codex with primary and backup connections, confirmed both list 27 tools, and documented quota fallback; API-key feature permissions still need validation before audio generation.
 - M5: Started M5 (M4 exit check still waits for a playtest). Spec 0011 done: versioned IndexedDB save with field-by-field migration, menu panels that lock control and free the pointer, and `ctx.suspended` for pausing. Verify green, 141 unit and 90 E2E tests.

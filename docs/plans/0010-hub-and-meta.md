@@ -22,3 +22,10 @@ Spec: docs/specs/0010-hub-and-meta.md
 | `src/game/state.ts`, `components.ts`, `config.ts`, `combat/projectiles.ts`                                          | `run.active`, loadout, tunables, pierce                  |
 | `src/game/ui/meta.ts`, `hud.ts`, `index.html`, `style.css`                                                          | Shop and staffs panels, prompts, banners                 |
 | `tests/e2e/hub.spec.ts`, `visual.spec.ts`                                                                           | Hub flow, upgrades, staffs, baselines                    |
+
+## Changes during build
+
+- The Blessings counter stayed visible in the hall: `.stat { display: flex }` overrode the `hidden` attribute, so `.stat[hidden]` now hides it explicitly.
+- The Glint Staff's numbers are getters over `config.bolt`, so the debug panel still tunes the starting staff live.
+- Runs in the hall take their seed from the session RNG, so a `?seed=` session replays the same sequence of runs.
+- "Abandon run" lives in the pause menu from spec 0012, added after merging that branch.

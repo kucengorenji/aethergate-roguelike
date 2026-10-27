@@ -80,10 +80,10 @@ Execution order (decided 2026-10-27): spec 0005 run structure, then 0006 Ash ski
 
 Weeks: 5-6
 
-- [ ] Death and victory return to the hub.
-- [ ] Lumen shards currency, about 6 permanent upgrades, two staff variants to unlock.
+- [x] Death and victory return to the hub (spec 0010).
+- [x] Lumen shards currency, about 6 permanent upgrades, two staff variants to unlock (spec 0010).
 - [x] Local save (IndexedDB) with versioning (spec 0011).
-- [ ] Main menu, pause menu, settings (mouse sensitivity, volume, quality).
+- [x] Main menu, pause menu, settings (mouse sensitivity, volume, quality) (spec 0012).
 - [ ] **Exit:** a player keeps coming back for "one more run" because the next unlock is in sight.
 
 ## M6: Art and audio pass

@@ -706,6 +706,264 @@ kbd {
   opacity: 0.85;
 }
 
+.menu {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: radial-gradient(rgb(10 8 6 / 40%), rgb(10 8 6 / 82%));
+}
+
+.menu[hidden],
+.menu-panel[hidden] {
+  display: none;
+}
+
+/* The title stands alone over the scene; the in-game HUD would compete with it. */
+body[data-menu='title'] :is(.vitals, .controls, .crosshair, .run-stats, .boons-held, .wave) {
+  visibility: hidden;
+}
+
+.menu-panel {
+  display: grid;
+  justify-items: center;
+  gap: 20px;
+}
+
+.menu-title h1 {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 76px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: #ffd98a;
+  text-shadow:
+    0 2px 18px rgb(0 0 0 / 65%),
+    0 0 48px rgb(216 165 72 / 30%);
+}
+
+.menu-tagline {
+  margin: -10px 0 18px;
+  font-size: 17px;
+  letter-spacing: 0.03em;
+  color: rgb(241 233 218 / 85%);
+  text-shadow: 0 1px 6px rgb(0 0 0 / 75%);
+}
+
+.menu-card {
+  max-width: 100%;
+  padding: 26px 30px 28px;
+  border-radius: 12px;
+  border: 1px solid rgb(216 165 72 / 45%);
+  background: rgb(24 19 14 / 92%);
+  box-shadow: 0 0 40px rgb(0 0 0 / 50%);
+}
+
+.menu-card h2 {
+  margin: 0 0 4px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #ffd98a;
+}
+
+.menu-card[data-panel='settings'] {
+  width: 480px;
+}
+
+.menu-buttons {
+  display: grid;
+  gap: 10px;
+  width: 240px;
+}
+
+.menu button {
+  padding: 11px 18px;
+  border: 1px solid rgb(241 233 218 / 22%);
+  border-radius: 8px;
+  background: rgb(20 16 12 / 75%);
+  color: var(--hud-fg);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease-out,
+    border-color 120ms ease-out,
+    color 120ms ease-out;
+}
+
+.menu button:hover {
+  border-color: rgb(216 165 72 / 75%);
+  background: rgb(62 47 27 / 90%);
+  color: #ffe2a8;
+}
+
+.menu button.primary {
+  border-color: #e9bd66;
+  background: #d8a548;
+  color: #1c140a;
+}
+
+.menu button.primary:hover {
+  border-color: #ffd98a;
+  background: #ebb95a;
+  color: #1c140a;
+}
+
+.menu button:active {
+  transform: translateY(1px);
+}
+
+.menu :focus-visible {
+  outline: 2px solid #ffd98a;
+  outline-offset: 3px;
+}
+
+.setting {
+  display: grid;
+  grid-template-columns: 150px 1fr 44px;
+  align-items: center;
+  gap: 14px;
+  justify-self: stretch;
+  font-size: 15px;
+}
+
+.setting output {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: rgb(241 233 218 / 80%);
+}
+
+/* --fill is the slider position, set from script; the track left of it is lit. */
+.setting input[type='range'] {
+  --fill: 50%;
+  width: 100%;
+  height: 22px;
+  margin: 0;
+  background: transparent;
+  appearance: none;
+  cursor: pointer;
+}
+
+.setting input[type='range']::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent) var(--fill), rgb(241 233 218 / 18%) var(--fill));
+}
+
+.setting input[type='range']::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent) var(--fill), rgb(241 233 218 / 18%) var(--fill));
+}
+
+.setting input[type='range']::-webkit-slider-thumb {
+  width: 16px;
+  height: 16px;
+  margin-top: -5px;
+  border: 0;
+  border-radius: 50%;
+  background: #ffd98a;
+  box-shadow:
+    0 0 0 2px rgb(24 19 14),
+    0 1px 4px rgb(0 0 0 / 50%);
+  appearance: none;
+}
+
+.setting input[type='range']::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 0;
+  border-radius: 50%;
+  background: #ffd98a;
+  box-shadow:
+    0 0 0 2px rgb(24 19 14),
+    0 1px 4px rgb(0 0 0 / 50%);
+}
+
+.setting input[type='range']:hover::-webkit-slider-thumb {
+  background: #fff0c8;
+}
+
+/* Keyboard focus rings the thumb, which is what the arrow keys move. */
+.setting input[type='range']:focus-visible {
+  outline: none;
+}
+
+.setting input[type='range']:focus-visible::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 2px rgb(24 19 14),
+    0 0 0 4px #ffd98a;
+}
+
+.setting input[type='range']:focus-visible::-moz-range-thumb {
+  box-shadow:
+    0 0 0 2px rgb(24 19 14),
+    0 0 0 4px #ffd98a;
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-column: 2 / 4;
+  border: 1px solid rgb(241 233 218 / 22%);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.segmented label {
+  position: relative;
+  cursor: pointer;
+}
+
+.segmented label + label {
+  border-left: 1px solid rgb(241 233 218 / 22%);
+}
+
+/* The radio stays focusable and keyboard driven; its label is what shows. */
+.segmented input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.segmented span {
+  display: block;
+  padding: 7px 0;
+  text-align: center;
+  font-size: 14px;
+  transition:
+    background-color 120ms ease-out,
+    color 120ms ease-out;
+}
+
+.segmented label:hover span {
+  background: rgb(62 47 27 / 90%);
+  color: #ffe2a8;
+}
+
+.segmented input:checked + span {
+  background: #d8a548;
+  color: #1c140a;
+  font-weight: 600;
+}
+
+.segmented input:focus-visible + span {
+  outline: 2px solid #ffd98a;
+  outline-offset: -2px;
+}
+
+.menu-card .menu-buttons {
+  margin-top: 6px;
+}
+
 .fatal {
   position: fixed;
   inset: 0;

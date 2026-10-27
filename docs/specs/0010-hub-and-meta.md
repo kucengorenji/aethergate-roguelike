@@ -1,6 +1,6 @@
 # 0010: The Kindled Hall and meta progression
 
-Status: in-progress
+Status: done
 Owner: Mikael (built by agent)
 
 ## Problem
@@ -21,15 +21,15 @@ M5 needs a home between runs where Lumen shards buy lasting power and new staffs
 
 ## Acceptance criteria
 
-- [ ] Without `?mode` the game starts in the hall; E at the grace site starts room 1 of a run.
-- [ ] Dying and pressing E returns to the hall with the run's shards banked and the run counted; victory counts a win and the best time.
-- [ ] Buying an upgrade spends shards, raises its level, persists across a reload, and changes the next run (for example Vigor: 115 max health).
-- [ ] Unaffordable and maxed upgrades cannot be bought.
-- [ ] Unlocking and equipping the Lance Staff makes bolts pierce through two enemies; the Scatter Staff fires three bolts.
-- [ ] Killing the Captain and the Starfallen Knight grants 40 and 100 shards.
-- [ ] Abandoning a run from the pause menu returns to the hall and banks its shards.
-- [ ] Unit tests cover upgrade costs and effects, staff definitions, and banking.
-- [ ] Visual baselines of the hall, the altar panel and the staff rack look right; `pnpm verify` passes.
+- [x] Without `?mode` the game starts in the hall; E at the grace site starts room 1 of a run. Verified: `hub.spec.ts` › the game starts in the hall and the grace site starts a run.
+- [x] Dying and pressing E returns to the hall with the run's shards banked and the run counted; victory counts a win and the best time. Verified: `hub.spec.ts` › dying returns to the hall with the shards banked; victory counts a win and the best time.
+- [x] Buying an upgrade spends shards, raises its level, persists across a reload, and changes the next run (for example Vigor: 115 max health). Verified: `hub.spec.ts` › upgrades cost shards, persist, and change the next run.
+- [x] Unaffordable and maxed upgrades cannot be bought. Verified: `hub.spec.ts` › upgrades cost shards (disabled buttons); `meta.test.ts`.
+- [x] Unlocking and equipping the Lance Staff makes bolts pierce through two enemies; the Scatter Staff fires three bolts. Verified: `hub.spec.ts` › the Lance Staff pierces through a line of enemies; the Scatter Staff fires three bolts.
+- [x] Killing the Captain and the Starfallen Knight grants 40 and 100 shards. Verified: `hub.spec.ts` › the Ward Captain is worth 40 shards; victory counts a win (100 from the boss).
+- [x] Abandoning a run from the pause menu returns to the hall and banks its shards. Verified: `hub.spec.ts` › abandoning a run from the pause menu returns to the hall.
+- [x] Unit tests cover upgrade costs and effects, staff definitions, and banking. Verified: `src/game/meta/meta.test.ts`.
+- [x] Visual baselines of the hall, the altar panel and the staff rack look right; `pnpm verify` passes. Verified: `visual.spec.ts` › the Kindled Hall, hall panel: altar-panel and staff-rack-panel, reviewed by eye; `pnpm progress:verify` 2026-10-27.
 
 ## Out of scope
 

@@ -14,8 +14,15 @@ export class Input {
   private pendingX = 0;
   private pendingY = 0;
   private pointerLocked = false;
+  private pendingLockLoss = false;
   /** Mouse movement in pixels for the current fixed step. */
   readonly look = { x: 0, y: 0 };
+  /**
+   * True for the one fixed step after the browser or the player took the pointer
+   * lock away (Esc, alt-tab). `releasePointer` (the game freeing it for a menu)
+   * does not count.
+   */
+  lockLost = false;
 
   constructor(target: EventTarget = window) {
     const { signal } = this.controller;
@@ -25,7 +32,8 @@ export class Input {
     on('keydown', (e) => {
       const { code } = e as KeyboardEvent;
       this.press(code);
-      if (GAME_KEYS.has(code)) e.preventDefault();
+      // Menus need Space and the arrows for their buttons and sliders.
+      if (GAME_KEYS.has(code) && !isFormControl(e.target)) e.preventDefault();
     });
     on('keyup', (e) => this.down.delete((e as KeyboardEvent).code));
     on('mousemove', (e) => {
@@ -51,6 +59,7 @@ export class Input {
   }
 
   setPointerLocked(locked: boolean): void {
+    if (this.pointerLocked && !locked) this.pendingLockLoss = true;
     this.pointerLocked = locked;
     if (!locked) {
       for (const code of [...this.down]) if (code.startsWith('Mouse')) this.down.delete(code);
@@ -94,6 +103,7 @@ export class Input {
   releasePointer(): void {
     if (document.pointerLockElement) document.exitPointerLock();
     this.setPointerLocked(false);
+    this.pendingLockLoss = false;
   }
 
   /** Adds mouse movement as if the pointer were locked. For tests and replays. */
@@ -129,11 +139,14 @@ export class Input {
     this.look.y = this.pendingY;
     this.pendingX = 0;
     this.pendingY = 0;
+    this.lockLost = this.pendingLockLoss;
+    this.pendingLockLoss = false;
   }
 
   /** Called by the engine after each fixed step. */
   endStep(): void {
     this.pressed.clear();
+    this.lockLost = false;
     this.look.x = 0;
     this.look.y = 0;
   }
@@ -150,3 +163,8 @@ export class Input {
 
 /** Keys whose browser default (scrolling) should be suppressed. */
 const GAME_KEYS = new Set(['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
+
+const isFormControl = (target: EventTarget | null): boolean =>
+  typeof Element !== 'undefined' &&
+  target instanceof Element &&
+  target.closest('button, input, select, textarea') !== null;

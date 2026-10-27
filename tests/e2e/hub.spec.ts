@@ -153,3 +153,22 @@ test('the Ward Captain is worth 40 shards', async ({ page }) => {
   await advance(page, 3);
   expect((await inspect(page)).run.shards).toBe(40);
 });
+
+test('abandoning a run from the pause menu returns to the hall', async ({ page }) => {
+  await openGame(page, HUB);
+  await useStation(page, STATION.grace);
+  await act(page, 'addRunShards', 25);
+  // Losing the pointer lock mid-run opens the pause menu.
+  await act(page, 'pointerLock', 0);
+  await advance(page, 2);
+  const abandon = page.locator('[data-action="abandon"]');
+  await expect(abandon).toBeVisible();
+  await abandon.click();
+  await advance(page, 2);
+  const s = await inspect(page);
+  expect(s.layout).toBe('kindled-hall');
+  expect(s.runActive).toBe(false);
+  expect(s.panel).toBeNull();
+  expect(s.save.shards).toBe(25);
+  expect(s.save.stats.runs).toBe(1);
+});
