@@ -7,6 +7,9 @@ See `docs/workflows/progress.md`.
 
 ## 2026-10-27
 
+- M6: VFX in code (spec 0014) handed to a cloud session on the claude-work profile (Opus 5.5, xhigh), branch `feat/m6-vfx`, PR into `feat/m6-pipeline`.
+- M6: Mikael approved the Codex direction; Round B started with two Codex artists in a Herdr `art` tab (character turnarounds; ruin kit, hall sheet and HUD sheet), and the style guide draft is written.
+- M6: Asset budget (40 MB) and license manifest checks are in `pnpm perf` (commit 6091119).
 - M6: Codex delivered the four Round A frames (hall, combat, boss, lineup), committed as 1280px WebP; Antigravity produced none (stuck on a permission dialog).
 - M5: Spec 0010 done: the Kindled Hall (grace site, altar of six upgrades, staff rack with Lance and Scatter), shards banked after every run, boss shard drops, Abandon run in the pause menu. Verify green, 166 unit and 109 E2E tests. M5 exit check waits for a playtest.
 - M5: Spec 0012 merged (built by a parallel agent in a Herdr pane): title screen, pause on lost pointer lock, settings for sensitivity, volume and Low/Medium/High quality, saved and restored; menus work with Tab, Enter and Esc.

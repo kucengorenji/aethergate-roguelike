@@ -27,16 +27,28 @@ This spec produces the references the style guide and all asset work follow.
 
 Mikael picks a direction (one agent's frames, or a mix with notes).
 
+### Decision (2026-10-27)
+
+Mikael approved the Codex frames (`assets-src/concept/round-a/codex-*.webp`) as the direction.
+Antigravity produced no Round A frames: it stopped at a permission dialog for a `mkdir`.
+Notes carried into Round B and the style guide:
+
+- The player's staff crystal and bolts are always pale blue; the violet crystal in the boss frame is wrong.
+- The Kindled Hall is small and intimate, not a grand open ruin.
+- The frames are illustrations, much more detailed than the game's models can be.
+  Round B sheets and the style guide translate them into buildable low-poly rules: big readable shapes, flat faceted planes with painted gradients, cloth as a few large tattered panels, and fine detail (filigree, cracks, small spikes) left to the texture or dropped.
+
 ## Round B: production references (the chosen direction)
 
-- Turnaround sheets (front, side, back, three-quarter; neutral A-pose; plain grey background) for the sorcerer and each enemy and boss.
+- Turnaround sheets (front, side, back, three-quarter; neutral A-pose; plain grey background) for the sorcerer and each enemy and boss, drawn as buildable low-poly models.
 - An environment kit sheet: wall segments, pillars (whole and broken), an arch, floor tiles, rubble, graves, tree roots, a brazier, the door arch, reward tokens.
+- A Kindled Hall sheet: the grace site, the upgrade altar with its crystal, the staff rack, and the distant golden tree as a skyline silhouette.
 - A HUD and icon sheet: health and focus bar frames, flask icon, comet skill ring, four demigod sigils (moon, falling star, rot, storm), reward icons (blessing, shards, heal, flask), boss bar frame.
 
 ## Acceptance criteria
 
-- [ ] Round A: four frames from each agent exist on disk, with the exact prompts recorded next to them.
-- [ ] Mikael has chosen a direction.
+- [x] Round A: four frames from each agent exist on disk, with the exact prompts recorded next to them. Codex delivered four (`round-a/codex-prompts.md`); Antigravity none, see the decision above.
+- [x] Mikael has chosen a direction: Codex, 2026-10-27.
 - [ ] Round B references exist on disk in the chosen direction, with prompts recorded.
 - [ ] `docs/design/style-guide.md` turns the chosen frames into rules for models, materials, palette, lighting, outlines and UI.
 - [ ] Every image has a line in `assets-src/LICENSES.md`.
