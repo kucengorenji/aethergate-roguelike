@@ -1,6 +1,7 @@
 // Optimizes every .glb/.gltf in assets-src/models into public/assets/models:
 // dedupe, prune, weld, meshopt geometry compression and WebP textures (max 2048px).
-// Load the results with loadModel() from src/engine/assets.ts.
+// Load the results with loadModel() from src/engine/assets.ts. Materials are not merged
+// into palette textures, because the game swaps named materials for config colors.
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readdirSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
@@ -30,6 +31,8 @@ for (const file of files) {
       'webp',
       '--texture-size',
       '2048',
+      '--palette',
+      'false',
     ],
     { stdio: 'inherit' },
   );

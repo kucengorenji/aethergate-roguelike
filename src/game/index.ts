@@ -12,6 +12,7 @@ import { spawnDummy } from './entities/dummy';
 import { ENEMY_KINDS, spawnEnemy } from './entities/enemy';
 import { spawnArena, spawnEnvironment } from './entities/level';
 import { resetPlayer, spawnPlayer } from './entities/player';
+import { loadPlayerModel, type PlayerModelKind } from './entities/player-model';
 import { spawnTotem } from './entities/totem';
 import { createState, type GameState, type Mode } from './state';
 import { actionsSystem } from './systems/actions';
@@ -56,6 +57,9 @@ export async function createGame(
   params: LaunchParams,
 ): Promise<Game<Entity, GameState>> {
   const mode = readMode();
+  const modelKind = readModelKind();
+  // Loaded before the game starts, so the first frame and every test see the real character.
+  const playerModel = await loadPlayerModel(modelKind);
   const game = await Game.create<Entity, GameState>({
     canvas,
     params,
@@ -73,7 +77,7 @@ export async function createGame(
 
   spawnEnvironment(ctx);
   if (mode !== 'run') spawnArena(ctx, grayboxArena);
-  const player = spawnPlayer(ctx, grayboxArena);
+  const player = spawnPlayer(ctx, grayboxArena, playerModel);
   if (mode === 'run') startRun(ctx, params.seed);
   // Training mode keeps the M2 practice courtyard; the encounter has waves instead.
   const dummy = mode === 'training' ? spawnDummy(ctx, 1.2, 5) : null;
@@ -158,6 +162,12 @@ export async function createGame(
         grounded: locomotion!.grounded,
         speed: locomotion!.speed,
         animation: animator!.current,
+        model: modelKind,
+        layers: {
+          aim: animator!.layerWeight('aim'),
+          bash: animator!.layerWeight('bash'),
+          drink: animator!.layerWeight('drink'),
+        },
         camera: { x: c.x, y: c.y, z: c.z },
         health: health!.current,
         invulnerable: health!.invulnerable > 0,
@@ -366,6 +376,12 @@ export async function createGame(
 function readMode(): Mode {
   const mode = new URLSearchParams(window.location.search).get('mode');
   return mode === 'training' || mode === 'sandbox' || mode === 'encounter' ? mode : 'run';
+}
+
+function readModelKind(): PlayerModelKind {
+  return new URLSearchParams(window.location.search).get('model') === 'mannequin'
+    ? 'mannequin'
+    : 'sorcerer';
 }
 
 function aliveProjectiles(

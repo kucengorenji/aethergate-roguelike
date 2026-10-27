@@ -6,5 +6,12 @@
   "frame": {
     "maxAvgStepMs": 2,
     "maxP95StepMs": 4
+  },
+  "assets": {
+    "assets/models/player.glb": {
+      "maxKB": 600,
+      "maxTriangles": 4000,
+      "maxBones": 40
+    }
   }
 }

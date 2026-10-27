@@ -15,6 +15,9 @@ export interface Snapshot {
   grounded: boolean;
   speed: number;
   animation: string | null;
+  model: 'sorcerer' | 'mannequin';
+  /** Effective weights of the additive upper-body layers. */
+  layers: { aim: number; bash: number; drink: number };
   camera: Vec3;
   health: number;
   invulnerable: boolean;

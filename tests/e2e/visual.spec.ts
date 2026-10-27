@@ -133,3 +133,28 @@ test('status effects and an arc', async ({ page }) => {
   await shootOnce(page);
   await expect(page).toHaveScreenshot('status-and-arc.png');
 });
+
+// The character's action poses from the shoulder camera.
+test('dodge roll mid-tumble', async ({ page }) => {
+  await openGame(page);
+  await advance(page, 5);
+  await page.keyboard.press('Space');
+  await advance(page, 10);
+  await expect(page).toHaveScreenshot('dodge-roll.png');
+});
+
+test('staff bash wind-up', async ({ page }) => {
+  await openGame(page);
+  await advance(page, 5);
+  await page.keyboard.press('KeyF');
+  await advance(page, 4);
+  await expect(page).toHaveScreenshot('bash-windup.png');
+});
+
+test('drinking the flask', async ({ page }) => {
+  await openGame(page);
+  await act(page, 'setHealth', 50);
+  await page.keyboard.press('KeyQ');
+  await advance(page, 25);
+  await expect(page).toHaveScreenshot('drinking.png');
+});

@@ -12,6 +12,7 @@ Built on a browser game starter: Three.js (WebGPU with WebGL 2 fallback), Rapier
 - Design: `docs/design/game-design.md`
 - Milestones: `docs/milestones.md` (check which milestone is current before starting work)
 - Key decisions: `docs/decisions/0002-tps-roguelike-scope.md`
+- Asset pipeline: `assets-src/README.md`, `docs/decisions/0003-asset-pipeline.md`
 
 `src/game/` is the game, `src/engine/` stays game-agnostic.
 
@@ -28,6 +29,7 @@ Built on a browser game starter: Three.js (WebGPU with WebGL 2 fallback), Rapier
 | `pnpm progress`                                | Regenerate the progress dashboard `docs/progress/dashboard.html` from milestones, log, specs, git and the last verify |
 | `pnpm progress:verify`                         | Run `pnpm verify`, record the result and budget numbers, then regenerate the dashboard                                |
 | `pnpm assets`                                  | Optimize models from `assets-src/models` into `public/assets/models`                                                  |
+| `pnpm assets:player`                           | Regenerate the player character with headless Blender 5.2, then `pnpm assets` (see `assets-src/README.md`)            |
 | `pnpm lint` / `pnpm typecheck` / `pnpm format` | Individual checks                                                                                                     |
 
 ## Workflow: Spec, Plan, Build, Verify
@@ -81,13 +83,14 @@ Follow `docs/workflows/progress.md` (Claude Code: the `progress` skill):
 
 ## URL parameters
 
-| Param             | Effect                                           |
-| ----------------- | ------------------------------------------------ |
-| `?seed=123`       | Fixed RNG seed, reproduces a level layout        |
-| `?debug`          | Opens the debug overlay at start                 |
-| `?test`           | Exposes `window.__game` (always on in dev)       |
-| `?paused`         | Simulation only advances via `__game.advance(n)` |
-| `?renderer=webgl` | Forces the WebGL 2 backend                       |
+| Param              | Effect                                                  |
+| ------------------ | ------------------------------------------------------- |
+| `?seed=123`        | Fixed RNG seed, reproduces a level layout               |
+| `?debug`           | Opens the debug overlay at start                        |
+| `?test`            | Exposes `window.__game` (always on in dev)              |
+| `?paused`          | Simulation only advances via `__game.advance(n)`        |
+| `?renderer=webgl`  | Forces the WebGL 2 backend                              |
+| `?model=mannequin` | Procedural player figure instead of the rigged sorcerer |
 
 ## Code style
 

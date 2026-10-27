@@ -7,6 +7,9 @@ See `docs/workflows/progress.md`.
 
 ## 2026-10-27
 
+- M4: Spec 0009 merged: rigged low-poly sorcerer from a headless Blender script with Quaternius UAL (CC0, the author's OpenGameArt upload of the same pack, hash pinned), `pnpm assets:player`, 1,536 tris, 23 bones, 146 KB, deterministic; built by a second agent in a Herdr pane and worktree.
+- M4: Merge re-recorded all 14 visual baselines from scratch (new HUD plus new character), reviewed by eye; verify green with 127 unit and 78 E2E tests. Risk: total bundle at 1,489 of 1,600 KB.
+- --: Parallel checkouts now pick their own E2E port (`E2E_PORT`), found by the spike agent: both checkouts were sharing port 4173.
 - M4: Spec 0007 done: 16 blessings from four demigods plus 2 duos, Chill, Weight, Rot and arcs, the pick-1-of-3 choice, element-colored comets. Verify green, 127 unit and 69 E2E tests.
 - M4: Fixed two silent misses from 0006 (comets in flight were never drawn), added a test that every played sound is registered, and cut the heavy perf scenario from 1.7 to 1.1 ms per step.
 - --: Perf failures under another agent's suite were environmental; heavy perf scenarios now step in-page, and the SDLC says to run perf alone.

@@ -72,7 +72,7 @@ Execution order (decided 2026-10-27): spec 0005 run structure, then 0006 Ash ski
 - [x] Ash skill on right click with a cooldown: one default skill and four boon variants (spec 0006).
 - [x] Boon system: four demigods with four blessings each (primary, skill, dodge, passive) plus 2 duo blessings, pick 1 of 3, status effects Chill, Crush, Rot and Chain (spec 0007).
 - [ ] Mini-boss (elite, 2 phases) and the boss, the Starfallen Knight (gravity theme: pull, telegraphed meteors, shrinking arena in phase 3), with a boss health bar (spec 0008).
-- [ ] Asset pipeline spike: a rigged low-poly player built by a headless Blender script in `assets-src/`, animations retargeted from the Quaternius Universal Animation Library (CC0), loaded through the Animator in place of the mannequin (spec 0009).
+- [x] Asset pipeline spike: a rigged low-poly player built by a headless Blender script in `assets-src/`, animations retargeted from the Quaternius Universal Animation Library (CC0), loaded through the Animator in place of the mannequin (spec 0009).
 - [ ] An E2E test plays one full seeded run from the first room to the boss through the test hook.
 - [ ] **Exit:** a full run from start to boss, and two runs with different boons play noticeably differently.
 
