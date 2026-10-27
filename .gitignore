@@ -10,3 +10,6 @@ playwright-report/
 .claude/settings.local.json
 docs/progress/dashboard.html
 docs/progress/verify.json
+
+# Derived by `pnpm assets:player` from assets-src/player/build_player.py.
+assets-src/models/player.glb
