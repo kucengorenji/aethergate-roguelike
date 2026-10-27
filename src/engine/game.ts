@@ -78,6 +78,7 @@ export class Game<E extends CoreComponents, S> {
   private readonly afterRender: (() => void)[] = [];
   private frameRequested = false;
   private readonly interpolator: Interpolator<E>;
+  private renderPass: (() => void) | null = null;
 
   private constructor(
     renderer: THREE.WebGPURenderer,
@@ -161,6 +162,14 @@ export class Game<E extends CoreComponents, S> {
     this.afterRender.push(callback);
   }
 
+  /**
+   * Replaces the plain scene render with `pass` (e.g. a post-processing chain);
+   * null goes back to the plain render. It runs after the frame systems.
+   */
+  setRenderPass(pass: (() => void) | null): void {
+    this.renderPass = pass;
+  }
+
   start(): void {
     this.resize();
     window.addEventListener('resize', () => {
@@ -194,7 +203,8 @@ export class Game<E extends CoreComponents, S> {
     for (const system of this.frameSystems) system(this.ctx);
 
     this.ctx.physics.updateDebug();
-    this.renderer.render(this.ctx.scene, this.ctx.camera);
+    if (this.renderPass) this.renderPass();
+    else this.renderer.render(this.ctx.scene, this.ctx.camera);
     for (const callback of this.afterRender) callback();
   }
 
