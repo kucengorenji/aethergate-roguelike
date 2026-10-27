@@ -14,7 +14,7 @@ for (const model of ['sorcerer', 'mannequin'] as const) {
     expect(s.layers).toEqual({ aim: 0, bash: 0, drink: 0 });
   });
 
-  test(`${model}: clips and layers follow the player's actions`, async ({ page }) => {
+  test(`${model}: base clips follow movement and the dodge`, async ({ page }) => {
     await openGame(page, query);
     await hold(page, 'KeyW', 20);
     expect((await inspect(page)).animation).toBe('run');
@@ -24,7 +24,10 @@ for (const model of ['sorcerer', 'mannequin'] as const) {
     await advance(page, 2);
     expect((await inspect(page)).animation).toBe('dodge');
     await advanceUntil(page, (s) => s.animation === 'idle', 60);
+  });
 
+  test(`${model}: upper-body layers follow aiming, bash and flask`, async ({ page }) => {
+    await openGame(page, query);
     await act(page, 'aimAt', ...DUMMY_CHEST);
     await page.mouse.down();
     // Bolts hitting the dummy cause hitstop, which slows the fade, so wait for it.
