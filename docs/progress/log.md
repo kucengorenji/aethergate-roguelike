@@ -7,6 +7,7 @@ See `docs/workflows/progress.md`.
 
 ## 2026-10-27
 
+- M6: Opened PR #1 (`feat/m6-vfx` into `feat/m6-pipeline`) for spec 0014; bloom now renders at a quarter of the screen, which cut software test frames from about 555 to 485 ms (base 415).
 - M6: VFX verified (spec 0014) except two checks for the WSL machine: verify passes 204 unit and 131 E2E tests (18 new VFX tests, all 26 baselines re-recorded in the cloud), and fails only the 30-enemy perf scenario, which also fails on the untouched base in the cloud container; WebGPU could not be run there. Task stays [~] until perf and WebGPU are checked on WSL.
 - M6: VFX built (spec 0014): pooled particles from a cosmetic fixed system with its own seed, trails, impacts, comet, auras, ice shells, hit sparks, spawn and death, telegraph decals, meteors, burning edge, ash, bloom and grade; total bundle 1,542 of 1,600 KB, entry 36.8 KB.
 - M6: Started VFX in code on branch `feat/m6-vfx`: spec 0014 and plan 0014 written (particles as a cosmetic fixed system with its own seeded stream, telegraph decals as data, bloom and grade in an engine post pipeline, lazy VFX chunk).
