@@ -96,6 +96,11 @@ The environment (sky, lights, fog) is built once; each room's geometry, doors an
 Bosses are enemy kinds (`captain`, `starfallen`) with a pure pattern brain (`src/game/ai/bosses.ts`): the move per phase and pattern, wind-ups per phase, and the closing ring's radius.
 The AI system handles phase changes; the attack system resolves each move; timed area hazards (meteors, the burning ring) live in `state.hazards` and `state.burnRing`, ticked by `systems/hazards.ts` and drawn by `systems/hazard-render.ts`.
 
+## Save data and panels
+
+`src/game/save/` holds the versioned save record (`migrate` repairs or rejects what is stored) and its IndexedDB store; `state.save` is loaded before the first frame and `saveGame(ctx)` writes it, in order.
+`state.panel` names the open menu; `controlsLocked` includes it and opening one releases the pointer. `ctx.suspended` stops fixed steps from simulating while the scene keeps rendering (pause menu).
+
 ## Modes
 
 `?mode=run` (default) plays a full run, `?mode=encounter` is the single three-wave chamber, `?mode=training` is the practice courtyard with the dummy and totem, `?mode=sandbox` is the empty arena for tests that spawn enemies themselves.

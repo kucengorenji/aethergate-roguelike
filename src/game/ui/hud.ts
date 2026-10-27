@@ -41,8 +41,10 @@ export function createHudSystem(): GameSystem {
     const { input, state, world } = ctx;
     const player = world.with('player', 'health', 'caster', 'flask', 'skill').first;
     const dead = state.phase === 'dead';
-    set('lock', String(input.locked || dead), () => {
-      prompt.hidden = input.locked || dead;
+    // A menu panel has its own UI; the click-to-play prompt waits until it closes.
+    const hidePrompt = input.locked || dead || state.panel !== null;
+    set('lock', String(hidePrompt), () => {
+      prompt.hidden = hidePrompt;
       crosshair.classList.toggle('dim', !input.locked);
     });
     set('dead', String(dead), () => {

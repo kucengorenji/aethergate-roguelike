@@ -1,4 +1,5 @@
 import type { ArenaLayout } from './arenas/types';
+import { defaultSave, type SaveData } from './save/data';
 import { grayboxArena } from './arenas/graybox';
 import { ProjectilePool } from './combat/projectiles';
 import type { RunPlan, Wave } from './run/plan';
@@ -6,6 +7,8 @@ import type { Reward } from './run/rewards';
 import type { God } from './boons/data';
 
 export type Phase = 'playing' | 'dead';
+/** Full-screen menus that take over input. */
+export type Panel = 'title' | 'pause' | 'settings' | 'shop' | 'staffs';
 export type Mode = 'run' | 'encounter' | 'training' | 'sandbox';
 export type RunStatus = 'fighting' | 'reward' | 'choosing' | 'transition' | 'complete';
 export type EncounterStatus = 'off' | 'waiting' | 'active' | 'intermission' | 'cleared';
@@ -50,6 +53,10 @@ export interface GameState {
     /** Seconds since the run started. */
     time: number;
   };
+  /** Persistent progress and settings (spec 0011). */
+  save: SaveData;
+  /** The open menu panel, if any; the player cannot act while one is open. */
+  panel: Panel | null;
   /** An open blessing choice: the demigod and the boon ids on its cards. */
   choice: { god: God; options: string[] } | null;
   /** Lightning arcs being drawn, with their age in seconds. */
@@ -98,7 +105,7 @@ export interface GameState {
 
 /** True while the player cannot act: dead, or choosing a blessing. */
 export function controlsLocked(state: GameState): boolean {
-  return state.phase !== 'playing' || state.choice !== null;
+  return state.phase !== 'playing' || state.choice !== null || state.panel !== null;
 }
 
 export function createState(mode: Mode = 'run', waves: Wave[] = [], startDelay = 2): GameState {
@@ -119,6 +126,8 @@ export function createState(mode: Mode = 'run', waves: Wave[] = [], startDelay =
       time: 0,
     },
     message: null,
+    save: defaultSave(),
+    panel: null,
     choice: null,
     arcs: [],
     pendingBursts: [],

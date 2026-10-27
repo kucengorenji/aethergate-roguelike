@@ -31,6 +31,12 @@ export interface GameContext<E extends CoreComponents, S> {
    * near 0 for a few steps of hitstop. Steps, ticks and input edges are unaffected.
    */
   timeScale: number;
+  /**
+   * While true, fixed steps only clear input and simulate nothing (pause menu).
+   * Rendering continues. Separate from the test hook's `paused`, which decides
+   * whether steps run at all.
+   */
+  suspended: boolean;
   /** Number of fixed steps simulated so far. */
   tick: number;
   /**
@@ -113,6 +119,7 @@ export class Game<E extends CoreComponents, S> {
       rng: new Rng(options.params.seed),
       dt: 0,
       timeScale: 1,
+      suspended: false,
       tick: 0,
       alpha: 1,
       snap: (entity) => {
@@ -196,6 +203,10 @@ export class Game<E extends CoreComponents, S> {
     const { ctx } = this;
     ctx.dt = this.fixedStep.stepSeconds * ctx.timeScale;
     ctx.input.beginStep();
+    if (ctx.suspended) {
+      ctx.input.endStep();
+      return;
+    }
     for (const system of this.fixedSystems) system(ctx);
     ctx.physics.step(ctx.dt);
     for (const entity of ctx.world.with('animator')) {

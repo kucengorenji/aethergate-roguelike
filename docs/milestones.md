@@ -82,7 +82,7 @@ Weeks: 5-6
 
 - [ ] Death and victory return to the hub.
 - [ ] Lumen shards currency, about 6 permanent upgrades, two staff variants to unlock.
-- [ ] Local save (IndexedDB) with versioning.
+- [x] Local save (IndexedDB) with versioning (spec 0011).
 - [ ] Main menu, pause menu, settings (mouse sensitivity, volume, quality).
 - [ ] **Exit:** a player keeps coming back for "one more run" because the next unlock is in sight.
 

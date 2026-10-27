@@ -23,6 +23,8 @@ import { hazardsSystem } from './systems/hazards';
 import { createHazardRenderSystem } from './systems/hazard-render';
 import { boonChoiceSystem } from './systems/boon-choice';
 import { createBoonsUiSystem } from './ui/boons';
+import { applySettings, closePanel, openPanel, saveGame, useSaveWriter } from './save';
+import { indexedDbStore, openSave } from './save/store';
 import { BOONS, GOD_ORDER, grant } from './boons/data';
 import { skillElement } from './boons/effects';
 import { addRot } from './boons/status';
@@ -59,6 +61,8 @@ export async function createGame(
   params: LaunchParams,
 ): Promise<Game<Entity, GameState>> {
   const mode = readMode();
+  // Saved progress and settings load before the first frame, like the character.
+  const save = await openSave(indexedDbStore());
   const modelKind = readModelKind();
   // Loaded before the game starts, so the first frame and every test see the real character.
   const playerModel = await loadPlayerModel(modelKind);
@@ -72,6 +76,9 @@ export async function createGame(
     ),
   });
   const { ctx } = game;
+  ctx.state.save = save.data;
+  useSaveWriter(save.write);
+  applySettings(ctx, config);
 
   ctx.camera.fov = config.camera.fov;
   ctx.camera.updateProjectionMatrix();
@@ -181,6 +188,9 @@ export async function createGame(
         skillElement: player.skill!.element,
         boons: player.boons!.held,
         choice: ctx.state.choice,
+        panel: ctx.state.panel,
+        suspended: ctx.suspended,
+        save: structuredClone(ctx.state.save),
         hazards: ctx.state.hazards.map((h) => ({ ...h })),
         burnRing: ctx.state.burnRing,
         action: action!.kind,
@@ -299,6 +309,19 @@ export async function createGame(
         } else {
           addRot(s, stacks, player.boons!.held.passive === 'fester');
         }
+      },
+      /** Opens a panel by index: 0 title, 1 pause, 2 settings, 3 shop, 4 staffs; -1 closes. */
+      panel: (index) => {
+        const panel = (['title', 'pause', 'settings', 'shop', 'staffs'] as const)[index];
+        if (panel) openPanel(ctx, panel);
+        else closePanel(ctx);
+      },
+      suspend: (on = 1) => {
+        ctx.suspended = on !== 0;
+      },
+      setShards: (value) => {
+        ctx.state.save.shards = value;
+        void saveGame(ctx);
       },
       /** Sets a boss's pattern counter, which picks its next move. */
       setEnemyPattern: (index, pattern) => {

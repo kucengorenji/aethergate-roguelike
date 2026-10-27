@@ -44,6 +44,16 @@ export interface Snapshot {
   skillElement: string | null;
   boons: { primary?: string; skill?: string; dodge?: string; passive?: string; duos: string[] };
   choice: { god: string; options: string[] } | null;
+  panel: string | null;
+  suspended: boolean;
+  save: {
+    shards: number;
+    upgrades: Record<string, number>;
+    staffs: string[];
+    staff: string;
+    settings: { sensitivity: number; volume: number; quality: string };
+    stats: { runs: number; wins: number; bestTime: number | null };
+  };
   layout: string;
   run: {
     seed: number | null;

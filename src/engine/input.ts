@@ -90,6 +90,12 @@ export class Input {
     );
   }
 
+  /** Gives the pointer back to the page (menus). Clicking the game locks it again. */
+  releasePointer(): void {
+    if (document.pointerLockElement) document.exitPointerLock();
+    this.setPointerLocked(false);
+  }
+
   /** Adds mouse movement as if the pointer were locked. For tests and replays. */
   injectLook(dx: number, dy: number): void {
     this.pendingX += dx;

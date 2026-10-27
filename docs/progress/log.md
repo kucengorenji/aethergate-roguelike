@@ -7,6 +7,7 @@ See `docs/workflows/progress.md`.
 
 ## 2026-10-27
 
+- M5: Started M5 (M4 exit check still waits for a playtest). Spec 0011 done: versioned IndexedDB save with field-by-field migration, menu panels that lock control and free the pointer, and `ctx.suspended` for pausing. Verify green, 141 unit and 90 E2E tests.
 - M4: Spec 0008 done: the Ward Captain (shield, slam, telegraphed charge, phase 2 summons) and the Starfallen Knight (sweep, gravity well, meteors, closing burning ring, three phases), boss bar, control resistance. Verify green, 133 unit and 87 E2E tests. All M4 tasks built; the exit check waits for a playtest.
 - M4: Fixed: the gravity well's pull accumulated in the player's velocity every step; the toast covered the boss bar.
 - M4: Spec 0009 merged: rigged low-poly sorcerer from a headless Blender script with Quaternius UAL (CC0, the author's OpenGameArt upload of the same pack, hash pinned), `pnpm assets:player`, 1,536 tris, 23 bones, 146 KB, deterministic; built by a second agent in a Herdr pane and worktree.
