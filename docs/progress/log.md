@@ -7,6 +7,7 @@ See `docs/workflows/progress.md`.
 
 ## 2026-10-27
 
+- M4: Planned M4: specs 0005 to 0008 in order, asset spike 0009 in parallel with headless Blender and Quaternius UAL (CC0), full 4x4 boons plus 2 duos, Starfallen Knight boss.
 - M3: Exit check passed: Mikael playtested the three-wave encounter and approved it. M3 done.
 - M3: All M3 tasks built (spec 0004 done): four enemy kinds with telegraphed attacks, knight shields, three waves with a cleared state, training and sandbox modes. Verify green, 70 unit and 44 E2E tests, 30 enemies plus 200 projectiles at 1.19 ms per step. Exit check waits for a playtest.
 - M3: Fixed: stacked enemies locked each other in the character controller; enemies now only collide with the level and the player and separate by steering.

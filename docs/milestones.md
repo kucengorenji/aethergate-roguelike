@@ -65,11 +65,15 @@ Weeks: 3
 
 Weeks: 4-5
 
-- [ ] Room pool (about 6 arena layouts), a run of about 8 rooms, doors that show their reward type.
-- [ ] Boon system: four demigods, pick 1 of 3, 4 blessings each, 2 duo blessings, status effects.
-- [ ] Ash skill (special) on right click, with one default skill and boon variants.
-- [ ] Mini-boss and boss with phases.
-- [ ] Seeded runs, so `?seed=` reproduces a run for tests and bug reports.
+Target: one seeded run from the first room to the boss in 15 to 20 minutes, where two runs with different boons play noticeably differently.
+Execution order (decided 2026-10-27): spec 0005 run structure, then 0006 Ash skill, then 0007 boons, then 0008 bosses; the asset spike (0009) runs in parallel after 0005.
+
+- [ ] Run structure: about 6 handcrafted arena layouts, 8 rooms per run (5 combat, 2 reward, mini-boss around room 5, boss in room 8), two doors per cleared room showing their reward, seeded so `?seed=` reproduces a run (spec 0005).
+- [ ] Ash skill on right click with a cooldown: one default skill and four boon variants (spec 0006).
+- [ ] Boon system: four demigods with four blessings each (primary, skill, dodge, passive) plus 2 duo blessings, pick 1 of 3, status effects Chill, Crush, Rot and Chain (spec 0007).
+- [ ] Mini-boss (elite, 2 phases) and the boss, the Starfallen Knight (gravity theme: pull, telegraphed meteors, shrinking arena in phase 3), with a boss health bar (spec 0008).
+- [ ] Asset pipeline spike: a rigged low-poly player built by a headless Blender script in `assets-src/`, animations retargeted from the Quaternius Universal Animation Library (CC0), loaded through the Animator in place of the mannequin (spec 0009).
+- [ ] An E2E test plays one full seeded run from the first room to the boss through the test hook.
 - [ ] **Exit:** a full run from start to boss, and two runs with different boons play noticeably differently.
 
 ## M5: Hub and meta progression
