@@ -21,6 +21,10 @@ export interface Entity extends CoreComponents {
   door?: { index: number; offer: Offer; open: boolean; portal: THREE.Mesh; emblem: THREE.Object3D };
   /** A reward token waiting to be picked up. */
   pickup?: { reward: Reward; x: number; z: number };
+  /** A station in the Kindled Hall (grace site, altar, staff rack). */
+  station?: { kind: 'grace' | 'altar' | 'rack' };
+  /** What the save gave the player for this run (spec 0010). */
+  loadout?: { staff: string; boltBonus: number; iframeBonus: number };
   /** Where the entity aims. Yaw 0 faces -z; positive pitch looks up. Radians. */
   look?: { yaw: number; pitch: number };
   /** Kinematic movement state, driven by the character controller. */

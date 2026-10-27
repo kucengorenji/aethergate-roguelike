@@ -1,16 +1,23 @@
 import { config } from '../config';
 import { placePlayer, resetPlayer } from '../entities/player';
 import type { Ctx, GameSystem } from '../types';
+import { returnToHub } from './hub';
 import { startRun } from './run';
 import { resetEncounter } from './waves';
 
 /**
- * R starts a new run after death or victory (in a run), or restarts the chamber
- * at any time (other modes). Falling out of the world resets the player.
+ * After death or victory: E returns to the Kindled Hall (the full game), or R
+ * starts the next run (`run` mode). Other modes restart the chamber on R at any
+ * time. Falling out of the world puts the player back at the entrance.
  */
 export const restartSystem: GameSystem = (ctx) => {
   const { state } = ctx;
-  if (ctx.input.wasPressed('KeyR')) {
+  const ended = state.phase === 'dead' || (state.run.active && state.run.status === 'complete');
+  if (state.mode === 'hub') {
+    if (ended && ctx.input.wasPressed('KeyE')) {
+      returnToHub(ctx, state.phase === 'dead' ? 'death' : 'victory');
+    }
+  } else if (ctx.input.wasPressed('KeyR')) {
     if (state.mode !== 'run') {
       restartEncounter(ctx);
       return;

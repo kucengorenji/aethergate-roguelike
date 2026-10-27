@@ -9,7 +9,11 @@ import type { God } from './boons/data';
 export type Phase = 'playing' | 'dead';
 /** Full-screen menus that take over input. */
 export type Panel = 'title' | 'pause' | 'settings' | 'shop' | 'staffs';
-export type Mode = 'run' | 'encounter' | 'training' | 'sandbox';
+/**
+ * `hub` is the full game: the Kindled Hall between runs. `run` plays runs back
+ * to back without the hall (tests). The others are single-room test arenas.
+ */
+export type Mode = 'hub' | 'run' | 'encounter' | 'training' | 'sandbox';
 export type RunStatus = 'fighting' | 'reward' | 'choosing' | 'transition' | 'complete';
 export type EncounterStatus = 'off' | 'waiting' | 'active' | 'intermission' | 'cleared';
 
@@ -36,6 +40,8 @@ export interface GameState {
   /** The room the player is in. */
   layout: ArenaLayout;
   run: {
+    /** True during a run; false in the hall and in single-room modes. */
+    active: boolean;
     plan: RunPlan | null;
     /** Index of the current room in the plan. */
     index: number;
@@ -103,7 +109,7 @@ export interface GameState {
   stats: { casts: number; hits: number };
 }
 
-/** True while the player cannot act: dead, or choosing a blessing. */
+/** True while the player cannot act: dead, choosing a blessing, or in a menu. */
 export function controlsLocked(state: GameState): boolean {
   return state.phase !== 'playing' || state.choice !== null || state.panel !== null;
 }
@@ -114,6 +120,7 @@ export function createState(mode: Mode = 'run', waves: Wave[] = [], startDelay =
     mode,
     layout: grayboxArena,
     run: {
+      active: false,
       plan: null,
       index: 0,
       status: 'fighting',

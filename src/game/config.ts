@@ -3,6 +3,12 @@
  * panel (backquote key) edits these values live.
  */
 export const config = {
+  hub: {
+    /** How close the player must stand to use a station in the Kindled Hall. */
+    stationRadius: 2.4,
+    /** Lumen shards for killing a boss, by kind. */
+    bossShards: { captain: 40, starfallen: 100 } as Partial<Record<string, number>>,
+  },
   player: {
     /** Capsule: total height is 2 * (halfHeight + radius). */
     radius: 0.35,

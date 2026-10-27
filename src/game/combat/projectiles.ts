@@ -20,6 +20,8 @@ export class ProjectilePool {
   readonly radius: Float32Array;
   readonly damage: Float32Array;
   readonly life: Float32Array;
+  /** Targets a projectile may still pass through before it stops (Lance Staff). */
+  readonly pierce: Uint8Array;
   private readonly free: number[] = [];
   private live = 0;
 
@@ -33,6 +35,7 @@ export class ProjectilePool {
     this.radius = new Float32Array(capacity);
     this.damage = new Float32Array(capacity);
     this.life = new Float32Array(capacity);
+    this.pierce = new Uint8Array(capacity);
     for (let i = capacity - 1; i >= 0; i--) this.free.push(i);
   }
 
@@ -53,6 +56,7 @@ export class ProjectilePool {
     radius: number;
     damage: number;
     life: number;
+    pierce?: number;
   }): number {
     const i = this.free.pop();
     if (i === undefined) return -1;
@@ -65,6 +69,7 @@ export class ProjectilePool {
     this.radius[i] = p.radius;
     this.damage[i] = p.damage;
     this.life[i] = p.life;
+    this.pierce[i] = p.pierce ?? 0;
     this.live++;
     return i;
   }

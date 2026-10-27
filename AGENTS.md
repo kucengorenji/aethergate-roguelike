@@ -32,6 +32,13 @@ Built on a browser game starter: Three.js (WebGPU with WebGL 2 fallback), Rapier
 | `pnpm assets:player`                           | Regenerate the player character with headless Blender 5.2, then `pnpm assets` (see `assets-src/README.md`)            |
 | `pnpm lint` / `pnpm typecheck` / `pnpm format` | Individual checks                                                                                                     |
 
+## ElevenLabs MCP
+
+- Use the `elevenlabs` MCP connection for audio work in this project.
+- If ElevenLabs explicitly rejects a request because that API key has exhausted its own quota, retry once through `elevenlabs_backup`.
+- Do not retry an ambiguous generation failure, since the first request may already have consumed credits.
+- Both keys may share a workspace quota; report an exhausted workspace balance instead of repeatedly switching keys.
+
 ## Workflow: Spec, Plan, Build, Verify
 
 Every non-trivial change follows `docs/workflows/sdlc.md`.

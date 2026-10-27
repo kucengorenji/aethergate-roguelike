@@ -30,6 +30,11 @@ export const enemyAiSystem: GameSystem = (ctx) => {
       enemy.state = 'dying';
       enemy.time = 0;
       enemy.collider.setEnabled(false);
+      const shards = config.hub.bossShards[enemy.kind];
+      if (shards) {
+        state.run.shards += shards;
+        state.message = { text: `+${shards} Lumen shards`, age: 0 };
+      }
     }
     if (isBoss(enemy.kind) && enemy.state !== 'dying') {
       enemy.phaseTime += dt;

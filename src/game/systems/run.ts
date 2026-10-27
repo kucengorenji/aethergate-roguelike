@@ -5,6 +5,7 @@ import { spawnDoors } from '../entities/door';
 import { despawnRoom, spawnArena } from '../entities/level';
 import { placePlayer, resetPlayer } from '../entities/player';
 import { spawnPickup } from '../entities/pickup';
+import { applyLoadout } from '../meta/apply';
 import { FIRST_REWARD, planRun } from '../run/plan';
 import type { Reward } from '../run/rewards';
 import type { Ctx, GameSystem } from '../types';
@@ -17,7 +18,7 @@ import { setEncounter } from './waves';
 export const runSystem: GameSystem = (ctx) => {
   const { state, dt } = ctx;
   const run = state.run;
-  if (state.mode !== 'run' || !run.plan || state.phase !== 'playing') return;
+  if (!run.active || !run.plan || state.phase !== 'playing') return;
   run.timer += dt;
   if (run.status !== 'complete') run.time += dt;
   const room = run.plan.rooms[run.index]!;
@@ -62,14 +63,25 @@ export const runSystem: GameSystem = (ctx) => {
 export function startRun(ctx: Ctx, seed: number): void {
   const { state } = ctx;
   state.run.plan = planRun(seed);
-  Object.assign(state.run, { index: 0, boons: 0, shards: 0, time: 0, loaded: false, chosen: 0 });
+  Object.assign(state.run, {
+    active: true,
+    index: 0,
+    boons: 0,
+    shards: 0,
+    time: 0,
+    loaded: false,
+    chosen: 0,
+  });
   state.phase = 'playing';
   state.elapsed = 0;
   state.message = null;
   Object.assign(state.feedback, { hitstop: 0, kick: 0, shake: 0, hurt: 0 });
   ctx.timeScale = 1;
   enterRoom(ctx, 0, FIRST_REWARD);
-  for (const player of ctx.world.with('player')) resetPlayer(ctx, player, state.layout);
+  for (const player of ctx.world.with('player')) {
+    resetPlayer(ctx, player, state.layout);
+    applyLoadout(ctx, player);
+  }
   setStatus(state.run, 'fighting');
 }
 

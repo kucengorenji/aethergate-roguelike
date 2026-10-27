@@ -45,6 +45,11 @@ export interface Snapshot {
   boons: { primary?: string; skill?: string; dodge?: string; passive?: string; duos: string[] };
   choice: { god: string; options: string[] } | null;
   panel: string | null;
+  runActive: boolean;
+  maxHealth: number;
+  maxFocus: number;
+  flaskMax: number;
+  loadout: { staff: string; boltBonus: number; iframeBonus: number } | null;
   suspended: boolean;
   save: {
     shards: number;
@@ -140,6 +145,8 @@ export const DUMMY_CHEST = [1.2, 1.2, 5] as const;
 
 export const ENCOUNTER = 'test&seed=1&paused&mode=encounter';
 export const RUN = (seed = 7) => `test&seed=${seed}&paused&mode=run`;
+export const HUB = 'test&seed=1&paused&mode=hub';
+export const STATION = { grace: 0, altar: 1, rack: 2 } as const;
 export const REWARD = { boon: 0, shards: 1, heal: 2, flask: 3 } as const;
 export const SANDBOX = 'test&seed=1&paused&mode=sandbox';
 export const KIND = {

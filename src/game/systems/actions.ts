@@ -59,7 +59,7 @@ export const actionsSystem: GameSystem = (ctx) => {
       startAction(player, 'dodge');
       action.dirX = dx;
       action.dirZ = dz;
-      health.invulnerable = config.dodge.invulnerable;
+      health.invulnerable = config.dodge.invulnerable + (player.loadout?.iframeBonus ?? 0);
       animator?.play('dodge', 0.05, 1, true);
       onDodgeStart(ctx, player);
       ctx.audio.play('dodge', { volume: 0.5 });

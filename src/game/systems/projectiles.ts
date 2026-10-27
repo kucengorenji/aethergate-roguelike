@@ -102,7 +102,16 @@ export const projectilesSystem: GameSystem = (ctx) => {
       const landed = applyDamage(ctx, hitTarget, damage, { from: { x: ax, z: az } });
       if (landed && playerBolt) onBoltHit(ctx, hitTarget, damage);
       impact(ctx, hx, hy, hz, pool.kind[i]!);
-      pool.release(i);
+      if (pool.pierce[i]! > 0) {
+        // A piercing bolt continues from just past the target it went through.
+        pool.pierce[i]!--;
+        const past = (hitTarget.hurtbox?.radius ?? 0.4) * 2 + 0.2;
+        pool.pos[o] = hx + (mx / len) * past;
+        pool.pos[o + 1] = hy + (my / len) * past;
+        pool.pos[o + 2] = hz + (mz / len) * past;
+      } else {
+        pool.release(i);
+      }
     } else if (hitWall) {
       impact(ctx, hx, hy, hz, pool.kind[i]!);
       if (pool.kind[i] === ProjectileKind.Bolt) ctx.audio.play('wall', { volume: 0.25 });

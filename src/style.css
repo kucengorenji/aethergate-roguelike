@@ -10,6 +10,124 @@
     sans-serif;
 }
 
+/* The altar and staff rack panels in the Kindled Hall. */
+.meta-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: min(620px, calc(100vw - 32px));
+  transform: translate(-50%, -50%);
+  display: grid;
+  gap: 12px;
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgb(216 165 72 / 55%);
+  background: rgb(24 19 14 / 94%);
+  box-shadow: 0 10px 40px rgb(0 0 0 / 55%);
+}
+
+.meta-panel[hidden] {
+  display: none;
+}
+
+.meta-panel header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.meta-panel h2 {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: #ffd98a;
+}
+
+.meta-shards {
+  font-size: 14px;
+  color: #9fd1ff;
+  font-variant-numeric: tabular-nums;
+}
+
+.meta-rows {
+  display: grid;
+  gap: 6px;
+}
+
+.meta-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgb(241 233 218 / 5%);
+}
+
+.meta-row h3 {
+  margin: 0;
+  font-size: 15px;
+  color: var(--hud-fg);
+}
+
+.meta-row p {
+  margin: 2px 0 0;
+  font-size: 13px;
+  opacity: 0.72;
+}
+
+.meta-pips {
+  display: flex;
+  gap: 4px;
+}
+
+.meta-pips i {
+  width: 9px;
+  height: 9px;
+  transform: rotate(45deg);
+  box-shadow: inset 0 0 0 1px rgb(241 233 218 / 45%);
+}
+
+.meta-pips i.on {
+  background: var(--accent);
+  box-shadow: none;
+}
+
+.meta-panel button {
+  min-width: 112px;
+  padding: 7px 12px;
+  border: 1px solid rgb(216 165 72 / 70%);
+  border-radius: 7px;
+  background: rgb(216 165 72 / 16%);
+  color: var(--hud-fg);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.meta-panel button:hover:not(:disabled) {
+  background: rgb(216 165 72 / 30%);
+}
+
+.meta-panel button:focus-visible {
+  outline: 2px solid #ffd98a;
+  outline-offset: 2px;
+}
+
+.meta-panel button:disabled {
+  border-color: rgb(241 233 218 / 18%);
+  background: transparent;
+  color: rgb(241 233 218 / 45%);
+  cursor: default;
+}
+
+.meta-close {
+  justify-self: end;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -417,6 +535,10 @@ body {
   background: var(--hud-bg);
   font-size: 14px;
   font-variant-numeric: tabular-nums;
+}
+
+.stat[hidden] {
+  display: none;
 }
 
 .stat i {

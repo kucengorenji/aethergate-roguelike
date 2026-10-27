@@ -54,6 +54,8 @@ import { enterRoom, runSystem, startRun } from './systems/run';
 import { tpsCameraSystem } from './systems/tps-camera';
 import { createDamageNumbersSystem } from './ui/damage-numbers';
 import { createHudSystem } from './ui/hud';
+import { createMetaUiSystem } from './ui/meta';
+import { enterHub, returnToHub } from './systems/hub';
 
 /** Composition root: spawn entities, register sounds and systems in order. */
 export async function createGame(
@@ -85,9 +87,11 @@ export async function createGame(
   registerSounds(ctx.audio);
 
   spawnEnvironment(ctx);
-  if (mode !== 'run') spawnArena(ctx, grayboxArena);
+  const inRooms = mode === 'run' || mode === 'hub';
+  if (!inRooms) spawnArena(ctx, grayboxArena);
   const player = spawnPlayer(ctx, grayboxArena, playerModel);
   if (mode === 'run') startRun(ctx, params.seed);
+  if (mode === 'hub') enterHub(ctx);
   // Training mode keeps the M2 practice courtyard; the encounter has waves instead.
   const dummy = mode === 'training' ? spawnDummy(ctx, 1.2, 5) : null;
   if (mode === 'training') spawnTotem(ctx, -2.5, 0.3, -8);
@@ -129,6 +133,7 @@ export async function createGame(
     .addFrameSystem(tpsCameraSystem)
     .addFrameSystem(createDamageNumbersSystem())
     .addFrameSystem(createBoonsUiSystem())
+    .addFrameSystem(createMetaUiSystem())
     .addFrameSystem(createHudSystem());
 
   installDebugOverlay(game, ({ gui }) => {
@@ -189,6 +194,11 @@ export async function createGame(
         boons: player.boons!.held,
         choice: ctx.state.choice,
         panel: ctx.state.panel,
+        runActive: ctx.state.run.active,
+        maxHealth: player.health!.max,
+        maxFocus: player.caster!.maxFocus,
+        flaskMax: player.flask!.max,
+        loadout: player.loadout ?? null,
         suspended: ctx.suspended,
         save: structuredClone(ctx.state.save),
         hazards: ctx.state.hazards.map((h) => ({ ...h })),
@@ -319,6 +329,25 @@ export async function createGame(
       suspend: (on = 1) => {
         ctx.suspended = on !== 0;
       },
+      /** Puts the player next to a hall station: 0 grace, 1 altar, 2 rack. */
+      teleportToStation: (index) => {
+        const kind = (['grace', 'altar', 'rack'] as const)[index];
+        const station = [...ctx.world.with('station', 'object3d')].find(
+          (s) => s.station.kind === kind,
+        );
+        if (!station) return;
+        const { x, z } = station.object3d.position;
+        player.body!.setTranslation({ x, y: 0.9, z: z + 1.6 }, true);
+        player.body!.setNextKinematicTranslation({ x, y: 0.9, z: z + 1.6 });
+        ctx.snap(player);
+      },
+      /** Ends the run as 0 death, 1 victory or 2 abandoned and returns to the hall. */
+      returnToHub: (end) => {
+        returnToHub(ctx, (['death', 'victory', 'abandoned'] as const)[end] ?? 'abandoned');
+      },
+      addRunShards: (value) => {
+        ctx.state.run.shards += value;
+      },
       setShards: (value) => {
         ctx.state.save.shards = value;
         void saveGame(ctx);
@@ -415,7 +444,10 @@ export async function createGame(
 
 function readMode(): Mode {
   const mode = new URLSearchParams(window.location.search).get('mode');
-  return mode === 'training' || mode === 'sandbox' || mode === 'encounter' ? mode : 'run';
+  // Players open the game without a mode: the full game, starting in the hall.
+  return mode === 'training' || mode === 'sandbox' || mode === 'encounter' || mode === 'run'
+    ? mode
+    : 'hub';
 }
 
 function readModelKind(): PlayerModelKind {

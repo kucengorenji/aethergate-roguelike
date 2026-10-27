@@ -24,9 +24,16 @@ describe.each(Object.values(ARENAS))('arena $id', (layout) => {
     expect(layout.halfSize - layout.spawn.z).toBeGreaterThanOrEqual(5);
   });
 
-  it('has room in front of every door', () => {
-    expect(layout.doors.length).toBeGreaterThan(0);
+  it('has room in front of every door (run rooms have doors, the hall has stations)', () => {
+    expect(layout.doors.length + (layout.stations?.length ?? 0)).toBeGreaterThan(0);
     for (const d of layout.doors) expect(open(layout, d.x, d.z + 1.5, 1.2)).toBe(true);
+  });
+
+  it('leaves room around every station', () => {
+    for (const s of layout.stations ?? []) {
+      expect(open(layout, s.x, s.z, 1.3)).toBe(true);
+      expect(open(layout, s.x, s.z + 2, 0.8)).toBe(true);
+    }
   });
 
   it('puts the reward token on open floor', () => {

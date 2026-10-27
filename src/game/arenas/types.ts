@@ -25,6 +25,8 @@ export interface ArenaLayout {
   enemySpawns: { x: number; z: number }[];
   /** Where the room's reward token appears; defaults to 5 m in front of the entrance. */
   rewardAt?: { x: number; z: number };
+  /** Hub stations (the Kindled Hall only). */
+  stations?: { kind: 'grace' | 'altar' | 'rack'; x: number; z: number }[];
   boxes: ArenaBox[];
 }
 

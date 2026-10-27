@@ -44,10 +44,20 @@
       <span class="stat shards" aria-label="Lumen shards"><i></i><b id="stat-shards">0</b></span>
     </div>
     <div class="toast" id="toast" hidden></div>
+    <div class="meta-panel" id="meta-panel" hidden>
+      <header>
+        <h2></h2>
+        <span class="meta-shards"></span>
+      </header>
+      <div class="meta-rows"></div>
+      <button type="button" class="meta-close">Close</button>
+    </div>
     <div class="door-prompt" id="door-prompt" hidden><kbd>E</kbd> <span></span></div>
     <div class="complete" id="complete" hidden>
       <h1>The Aethergate opens</h1>
-      <p>Run time <span data-time></span> · Press <kbd>R</kbd> for a new run</p>
+      <p>
+        Run time <span data-time></span> · <span data-hint>Press <kbd>R</kbd> for a new run</span>
+      </p>
     </div>
     <div class="fade" id="fade" aria-hidden="true"></div>
     <div class="cleared" id="cleared" hidden>
@@ -57,7 +67,9 @@
 
     <div class="death" id="death" hidden>
       <h1>You fell</h1>
-      <p>Press <kbd>R</kbd> to rise again</p>
+      <p>
+        <span data-hint>Press <kbd>R</kbd> to rise again</span>
+      </p>
     </div>
 
     <div class="lock-prompt" id="lock-prompt">

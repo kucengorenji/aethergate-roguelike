@@ -1,7 +1,17 @@
 import { config } from '../config';
+import { STATION_LABEL } from '../entities/station';
 import { OFFER_INFO } from '../run/rewards';
-import { nearestOpenDoor } from '../systems/interact';
+import { nearestOpenDoor, nearestStation } from '../systems/interact';
 import type { GameSystem } from '../types';
+
+/** Rewrites a banner's "Press <key> to ..." line (its `[data-hint]` span). */
+function setHint(banner: HTMLElement, [key, text]: [string, string]): void {
+  const hint = banner.querySelector('[data-hint]');
+  if (!hint) return;
+  const kbd = document.createElement('kbd');
+  kbd.textContent = key;
+  hint.replaceChildren('Press ', kbd, ` ${text}`);
+}
 
 /**
  * Health, focus, flasks, the death banner, the hurt flash and the
@@ -47,9 +57,12 @@ export function createHudSystem(): GameSystem {
       prompt.hidden = hidePrompt;
       crosshair.classList.toggle('dim', !input.locked);
     });
-    set('dead', String(dead), () => {
+    // In the full game a finished run goes back to the hall; elsewhere R starts the next one.
+    const hub = state.mode === 'hub';
+    set('dead', `${dead}|${hub}`, () => {
       death.hidden = !dead;
       crosshair.hidden = dead;
+      setHint(death, hub ? ['E', 'to return to the Kindled Hall'] : ['R', 'to rise again']);
     });
     const enc = state.encounter;
     const waveText =
@@ -60,7 +73,8 @@ export function createHudSystem(): GameSystem {
           : '';
     const run = state.run;
     const room = run.plan?.rooms[run.index];
-    const inRun = state.mode === 'run' && !!room;
+    const inRun = run.active && !!room;
+    const inHall = hub && !run.active;
     const kindText = room
       ? { combat: '', grace: 'Grace', elite: 'Elite', boss: 'Boss' }[room.kind]
       : '';
@@ -68,7 +82,9 @@ export function createHudSystem(): GameSystem {
       ? [`Room ${run.index + 1} / ${run.plan!.rooms.length}`, waveText || kindText]
           .filter(Boolean)
           .join(' · ')
-      : waveText;
+      : inHall
+        ? 'The Kindled Hall'
+        : waveText;
     set('wave', label, () => {
       wave.hidden = label === '';
       wave.textContent = label;
@@ -76,10 +92,13 @@ export function createHudSystem(): GameSystem {
     set('cleared', String(enc.status === 'cleared' && !dead && !inRun), () => {
       cleared.hidden = enc.status !== 'cleared' || dead || inRun;
     });
-    set('stats', `${inRun}|${run.boons}|${run.shards}`, () => {
-      runStats.hidden = !inRun;
+    // In a run: blessings and shards found so far. In the hall: shards banked.
+    const shards = inHall ? state.save.shards : run.shards;
+    set('stats', `${inRun}|${inHall}|${run.boons}|${shards}`, () => {
+      runStats.hidden = !inRun && !inHall;
+      statBoons.parentElement!.hidden = inHall;
       statBoons.textContent = String(run.boons);
-      statShards.textContent = String(run.shards);
+      statShards.textContent = String(shards);
     });
     const message = state.message?.text ?? '';
     set('toast', message, () => {
@@ -88,14 +107,20 @@ export function createHudSystem(): GameSystem {
     });
     const p = world.with('player', 'body').first?.body.translation();
     const door = inRun && run.status === 'choosing' && p ? nearestOpenDoor(ctx, p.x, p.z) : null;
-    const promptText = door ? `Enter: ${OFFER_INFO[door.offer].label}` : '';
+    const station = inHall && p && state.panel === null ? nearestStation(ctx, p.x, p.z) : null;
+    const promptText = door
+      ? `Enter: ${OFFER_INFO[door.offer].label}`
+      : station
+        ? STATION_LABEL[station]
+        : '';
     set('door', promptText, () => {
       doorPrompt.hidden = promptText === '';
       doorPrompt.querySelector('span')!.textContent = promptText;
     });
     const done = inRun && run.status === 'complete' && !dead;
-    set('complete', `${done}|${done ? run.time.toFixed(0) : ''}`, () => {
+    set('complete', `${done}|${done ? run.time.toFixed(0) : ''}|${hub}`, () => {
       complete.hidden = !done;
+      setHint(complete, hub ? ['E', 'to return to the Kindled Hall'] : ['R', 'for a new run']);
       const minutes = Math.floor(run.time / 60);
       const seconds = Math.floor(run.time % 60);
       complete.querySelector('[data-time]')!.textContent =

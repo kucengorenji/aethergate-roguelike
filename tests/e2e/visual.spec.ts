@@ -6,6 +6,7 @@ import {
   BOON,
   DUMMY_CHEST,
   hold,
+  HUB,
   KIND,
   openGame,
   pixelsForRadians,
@@ -13,7 +14,30 @@ import {
   RUN,
   SANDBOX,
   shootOnce,
+  STATION,
 } from './helpers';
+
+test('the Kindled Hall', async ({ page }) => {
+  await openGame(page, HUB);
+  await act(page, 'setShards', 140);
+  await advance(page, 30);
+  await expect(page).toHaveScreenshot('kindled-hall.png');
+});
+
+for (const [name, station, setup] of [
+  ['altar-panel', STATION.altar, 140],
+  ['staff-rack-panel', STATION.rack, 140],
+] as const) {
+  test(`hall panel: ${name}`, async ({ page }) => {
+    await openGame(page, HUB);
+    await act(page, 'setShards', setup);
+    await act(page, 'teleportToStation', station);
+    await advance(page, 2);
+    await page.keyboard.press('KeyE');
+    await advance(page, 3);
+    await expect(page).toHaveScreenshot(`${name}.png`);
+  });
+}
 
 // Deterministic scenes: fixed seed, paused simulation, fixed number of steps.
 // Update baselines intentionally with `pnpm e2e:update` and review the diff.

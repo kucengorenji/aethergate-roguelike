@@ -208,10 +208,38 @@ const starfall: ArenaLayout = {
   boxes: mirrored([pillar(14, -14, 3, 1.8), pillar(14, 14, 2, 1.8)]),
 };
 
+/** The hub between runs: a quiet ruined hall with the three stations. */
+const kindledHall: ArenaLayout = {
+  id: 'kindled-hall',
+  halfSize: 12,
+  wallHeight: 4.5,
+  spawn: { x: 0, z: 6, yaw: 0 },
+  doors: [],
+  enemySpawns: [],
+  stations: [
+    { kind: 'grace', x: 0, z: -6 },
+    { kind: 'altar', x: -6, z: -1.5 },
+    { kind: 'rack', x: 6, z: -1.5 },
+  ],
+  boxes: [
+    ...mirrored([pillar(9, -9, 4.5), pillar(9, 3, 4.5), pillar(4, -10, 2.4)]),
+    { x: 0, y: 0, z: -6, size: [5, 0.2, 5], kind: 'trim' },
+  ],
+};
+
 export const ARENAS: Record<string, ArenaLayout> = Object.fromEntries(
-  [grayboxArena, colonnade, crossroads, ring, trench, rubbleField, grace, gateHall, starfall].map(
-    (a) => [a.id, a],
-  ),
+  [
+    grayboxArena,
+    colonnade,
+    crossroads,
+    ring,
+    trench,
+    rubbleField,
+    grace,
+    gateHall,
+    starfall,
+    kindledHall,
+  ].map((a) => [a.id, a]),
 );
 
 /** Layouts combat rooms draw from. */
@@ -224,5 +252,6 @@ export const COMBAT_LAYOUTS = [
   'rubble',
 ] as const;
 export const GRACE_LAYOUT = 'grace';
+export const HALL_LAYOUT = 'kindled-hall';
 export const ELITE_LAYOUT = 'gate-hall';
 export const BOSS_LAYOUT = 'starfall';
