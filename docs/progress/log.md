@@ -7,6 +7,8 @@ See `docs/workflows/progress.md`.
 
 ## 2026-10-27
 
+- M3: Started M3 on branch `feat/m3-enemies`, writing spec 0004 (enemies and combat rooms).
+- M2: Exit check passed: Mikael playtested movement and combat with a real mouse and approved the feel. M1 and M2 done.
 - M2: All M2 tasks built (spec 0003 done): pooled bolts with focus, dodge roll with i-frames, staff bash, flask, training dummy and totem, hitstop, damage numbers, HUD. Verify green, 56 unit and 29 E2E tests, 200 projectiles at 0.42 ms per step. Exit check waits for a human playtest.
 - M2: Fixed: holding fire on empty focus kept casting at nearly full rate because focus regenerated while the button was held.
 - M2: Risk: entry bundle at 20.8 of 25 KB; plan a lazy game chunk in M3.
