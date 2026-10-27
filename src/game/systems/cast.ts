@@ -1,6 +1,7 @@
 import { aimPoint, muzzlePoint } from '../combat/aim';
 import { ProjectileKind, Team } from '../combat/projectiles';
 import { config } from '../config';
+import { controlsLocked } from '../state';
 import type { GameSystem } from '../types';
 
 /**
@@ -14,7 +15,7 @@ export const castSystem: GameSystem = (ctx) => {
     const { caster, action } = player;
     caster.cooldown = Math.max(0, caster.cooldown - dt);
     caster.sinceCast += dt;
-    if (state.phase !== 'playing' || action.kind !== 'none') continue;
+    if (controlsLocked(state) || action.kind !== 'none') continue;
     if (!input.isDown('Mouse0') || caster.cooldown > 0) continue;
 
     const { cost, speed, radius, damage, life, interval } = config.bolt;

@@ -2,6 +2,7 @@ import { RAPIER } from '@engine/physics';
 import * as THREE from 'three/webgpu';
 import { ENEMY_GROUPS } from '../combat/groups';
 import type { EnemyKind, Entity } from '../components';
+import { noStatus } from '../boons/status';
 import { config } from '../config';
 import type { Ctx } from '../types';
 
@@ -80,6 +81,7 @@ export function spawnEnemy(ctx: Ctx, kind: EnemyKind, x: number, z: number, rise
     },
     hurtbox: { radius: k.radius, halfHeight: k.halfHeight },
     flash: { time: 0, materials: [skin] },
+    status: noStatus(),
     enemy: {
       kind,
       state: risen ? 'chase' : 'rising',

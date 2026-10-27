@@ -1,4 +1,5 @@
-import { burst } from '../combat/burst';
+import { damageMultiplier, onBoltHit } from '../boons/effects';
+import { cometEnded } from '../combat/burst';
 import { applyDamage } from '../combat/damage';
 import { WORLD_RAYS } from '../combat/groups';
 import { sweepSphereCapsule } from '../combat/hit';
@@ -14,17 +15,25 @@ const origin = { x: 0, y: 0, z: 0 };
  * geometry (ray) and enemy-team hurtboxes (swept capsule test). Targets that
  * are invulnerable (mid-dodge) let projectiles pass through.
  */
+const targets: { entity: Entity; x: number; y: number; z: number }[] = [];
+
 export const projectilesSystem: GameSystem = (ctx) => {
   const { state, dt, physics, world } = ctx;
   const pool = state.projectiles;
-  const targets = [...world.with('hurtbox', 'health', 'body')];
+  // Positions are read from Rapier once per step: body.translation() crosses into
+  // wasm and allocates, and the inner loop below runs projectiles times targets.
+  targets.length = 0;
+  for (const entity of world.with('hurtbox', 'health', 'body')) {
+    const c = entity.body.translation();
+    targets.push({ entity, x: c.x, y: c.y, z: c.z });
+  }
   for (let i = 0; i < pool.capacity; i++) {
     if (!pool.alive[i]) continue;
     pool.life[i]! -= dt;
     if (pool.life[i]! <= 0) {
       // A comet's fuse ends at its aim point: it bursts there instead of fading.
       if (pool.kind[i] === ProjectileKind.Comet) {
-        burst(ctx, pool.pos[i * 3]!, pool.pos[i * 3 + 1]!, pool.pos[i * 3 + 2]!);
+        cometEnded(ctx, pool.pos[i * 3]!, pool.pos[i * 3 + 1]!, pool.pos[i * 3 + 2]!);
       }
       pool.release(i);
       continue;
@@ -58,10 +67,9 @@ export const projectilesSystem: GameSystem = (ctx) => {
       }
     }
     const team = pool.team[i];
-    for (const target of targets) {
-      if (target.health.current <= 0 || target.health.invulnerable > 0) continue;
+    for (const { entity: target, x: cx, y: cy, z: cz } of targets) {
+      if (target.health!.current <= 0 || target.health!.invulnerable > 0) continue;
       if ((team === Team.Player) === Boolean(target.player)) continue;
-      const c = target.body.translation();
       const s = sweepSphereCapsule(
         ax,
         ay,
@@ -70,11 +78,11 @@ export const projectilesSystem: GameSystem = (ctx) => {
         ay + my,
         az + mz,
         pool.radius[i]!,
-        c.x,
-        c.y,
-        c.z,
-        target.hurtbox.halfHeight,
-        target.hurtbox.radius,
+        cx,
+        cy,
+        cz,
+        target.hurtbox!.halfHeight,
+        target.hurtbox!.radius,
       );
       if (s !== null && s <= bestT) {
         bestT = s;
@@ -86,10 +94,13 @@ export const projectilesSystem: GameSystem = (ctx) => {
     const hy = ay + my * bestT;
     const hz = az + mz * bestT;
     if ((hitTarget || hitWall) && pool.kind[i] === ProjectileKind.Comet) {
-      burst(ctx, hx, hy, hz);
+      cometEnded(ctx, hx, hy, hz);
       pool.release(i);
     } else if (hitTarget) {
-      applyDamage(ctx, hitTarget, pool.damage[i]!, { from: { x: ax, z: az } });
+      const playerBolt = team === Team.Player;
+      const damage = pool.damage[i]! * (playerBolt ? damageMultiplier(ctx, hitTarget) : 1);
+      const landed = applyDamage(ctx, hitTarget, damage, { from: { x: ax, z: az } });
+      if (landed && playerBolt) onBoltHit(ctx, hitTarget, damage);
       impact(ctx, hx, hy, hz, pool.kind[i]!);
       pool.release(i);
     } else if (hitWall) {

@@ -1,3 +1,4 @@
+import { offerBoons, pickGod } from '../boons/offer';
 import { config } from '../config';
 import type { Ctx } from '../types';
 import { OFFER_INFO, type Reward } from './rewards';
@@ -9,10 +10,9 @@ export function applyReward(ctx: Ctx, reward: Reward): void {
   let text = OFFER_INFO[reward].label;
   switch (reward) {
     case 'boon':
-      // Counted until spec 0007 adds the choice of blessings.
-      run.boons++;
-      text = 'Blessing received';
-      break;
+      openBoonChoice(ctx);
+      ctx.audio.play('pickup', { volume: 0.6 });
+      return;
     case 'shards':
       run.shards += config.run.shards;
       text = `+${config.run.shards} Lumen shards`;
@@ -37,4 +37,14 @@ export function applyReward(ctx: Ctx, reward: Reward): void {
   }
   ctx.state.message = { text, age: 0 };
   ctx.audio.play('pickup', { volume: 0.6 });
+}
+
+/** Opens a choice of blessings from a demigod picked by the run's RNG. */
+export function openBoonChoice(ctx: Ctx, god = pickGod(ctx.rng)): void {
+  const held = ctx.world.with('player', 'boons').first?.boons.held;
+  if (!held) return;
+  const options = offerBoons(ctx.rng, held, god);
+  // Every blessing of this demigod is held: nothing to offer, so the reward is spent.
+  if (options.length === 0) return;
+  ctx.state.choice = { god, options };
 }

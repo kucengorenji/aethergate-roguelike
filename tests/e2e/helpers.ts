@@ -25,7 +25,18 @@ export interface Snapshot {
   mode: 'encounter' | 'training' | 'sandbox';
   bodies: number;
   encounter: { status: string; wave: number; total: number; timer: number };
-  enemies: { kind: string; state: string; x: number; z: number; health: number; facing: number }[];
+  enemies: {
+    kind: string;
+    state: string;
+    x: number;
+    z: number;
+    health: number;
+    facing: number;
+    status: { chill: number; frozen: number; weight: number; rot: number } | null;
+  }[];
+  skillElement: string | null;
+  boons: { primary?: string; skill?: string; dodge?: string; passive?: string; duos: string[] };
+  choice: { god: string; options: string[] } | null;
   layout: string;
   run: {
     seed: number | null;
@@ -177,9 +188,63 @@ export async function takeRewardAndEnter(page: Page, door = 0): Promise<void> {
   );
   if ((await inspect(page)).run.status === 'complete') return;
   await act(page, 'teleportToPickup');
+  await advance(page, 2);
+  // A Blessing opens a choice of cards first; take the first one.
+  if ((await inspect(page)).choice) await page.keyboard.press('Digit1');
   await advanceUntil(page, (s) => s.run.status === 'choosing', 10);
   await act(page, 'teleportToDoor', door);
   await advance(page, 1);
   await page.keyboard.press('KeyE');
   await advanceUntil(page, (s) => s.run.status === 'fighting', 60);
+}
+
+/** Boon indexes in BOONS order (src/game/boons/data.ts). */
+export const BOON = {
+  moonlitBolts: 0,
+  rimeComet: 1,
+  paleStep: 2,
+  coldHeart: 3,
+  starfallBolts: 4,
+  collapsingComet: 5,
+  meteorStep: 6,
+  starboundStaff: 7,
+  blightedBolts: 8,
+  blightComet: 9,
+  sporeStep: 10,
+  fester: 11,
+  arcBolts: 12,
+  thunderComet: 13,
+  staticStep: 14,
+  thunderhead: 15,
+  shatter: 16,
+  plagueStorm: 17,
+} as const;
+
+/**
+ * Fires exactly one bolt at the crosshair and waits until it has landed. Holds
+ * the button until the cast happens, because hitstop from the previous hit can
+ * stretch the cast cooldown past a fixed wait.
+ */
+export async function shootOnce(page: Page): Promise<void> {
+  const casts = (await inspect(page)).stats.casts;
+  await page.mouse.down();
+  await page.evaluate(
+    ([before]) => {
+      const game = window.__game!;
+      const count = () => (game.inspect() as { stats: { casts: number } }).stats.casts;
+      for (let n = 0; n < 60 && count() === before; n++) game.advanceSync(1);
+    },
+    [casts] as const,
+  );
+  await page.mouse.up();
+  await advanceUntil(page, (s) => s.projectileList.every((p) => p.kind !== 0), 60);
+}
+
+/** Hurls one comet and waits until it has burst (including a Collapsing pull). */
+export async function cometOnce(page: Page): Promise<void> {
+  await page.mouse.down({ button: 'right' });
+  await advance(page, 1);
+  await page.mouse.up({ button: 'right' });
+  await advanceUntil(page, (s) => s.projectileList.every((p) => p.kind !== 2), 90);
+  await advance(page, 25);
 }

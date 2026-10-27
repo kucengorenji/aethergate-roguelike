@@ -1,4 +1,5 @@
 import { config } from '../config';
+import { controlsLocked } from '../state';
 import type { GameSystem } from '../types';
 import { yawBasis } from './look';
 
@@ -15,7 +16,7 @@ export const locomotionSystem: GameSystem = ({ world, input, dt, state }) => {
     'locomotion',
     'characterController',
   )) {
-    const alive = state.phase === 'playing';
+    const alive = !controlsLocked(state);
     const strafe = alive ? input.axis(['KeyA', 'ArrowLeft'], ['KeyD', 'ArrowRight']) : 0;
     const forward = alive ? input.axis(['KeyS', 'ArrowDown'], ['KeyW', 'ArrowUp']) : 0;
     const { fx, fz, rx, rz } = yawBasis(look.yaw);

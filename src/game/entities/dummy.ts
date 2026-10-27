@@ -2,6 +2,7 @@ import { RAPIER } from '@engine/physics';
 import * as THREE from 'three/webgpu';
 import { ACTOR_GROUPS } from '../combat/groups';
 import type { Entity } from '../components';
+import { noStatus } from '../boons/status';
 import { config } from '../config';
 import type { Ctx } from '../types';
 
@@ -53,6 +54,7 @@ export function spawnDummy(ctx: Ctx, x: number, z: number): Entity {
     health: { current: health, max: health, invulnerable: 0 },
     hurtbox: { radius, halfHeight },
     flash: { time: 0, materials: [straw] },
+    status: noStatus(),
     dummy: {
       home: { x, y: CENTER_Y, z },
       offset: { x: 0, z: 0 },

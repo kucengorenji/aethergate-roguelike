@@ -1,3 +1,4 @@
+import { afterBurst, beforeBurst, damageMultiplier, has } from '../boons/effects';
 import type { Entity } from '../components';
 import { config } from '../config';
 import type { Ctx } from '../types';
@@ -20,9 +21,25 @@ export function burstReaches(x: number, y: number, z: number, radius: number, t:
   return Math.hypot(x - t.x, dy, z - t.z) - t.radius <= radius;
 }
 
+/** Delay between a Collapsing Comet's pull and its burst, seconds. */
+const PULL_SECONDS = 0.35;
+
+/** A comet ended at (x, y, z): it bursts now, or after pulling enemies in. */
+export function cometEnded(ctx: Ctx, x: number, y: number, z: number): void {
+  if (beforeBurst(ctx, x, z)) {
+    ctx.state.pendingBursts.push({ x, y, z, time: PULL_SECONDS });
+    ctx.state.impacts.push({ x, y, z, age: 0, kind: 4 });
+    ctx.audio.play('pull', { volume: 0.6 });
+  } else {
+    burst(ctx, x, y, z);
+  }
+}
+
 /** Damages and knocks back every living enemy the burst reaches. Returns how many were hit. */
 export function burst(ctx: Ctx, x: number, y: number, z: number): number {
-  const { radius, damage, knockback } = config.comet;
+  const { radius, damage } = config.comet;
+  // A collapsing burst keeps its victims where the pull left them.
+  const knockback = has(ctx, 'collapsing-comet') ? 0 : config.comet.knockback;
   let hits = 0;
   const victims: Entity[] = [];
   for (const target of ctx.world.with('enemy', 'body', 'hurtbox', 'health')) {
@@ -30,9 +47,19 @@ export function burst(ctx: Ctx, x: number, y: number, z: number): number {
     const p = target.body.translation();
     if (burstReaches(x, y, z, radius, { ...p, ...target.hurtbox })) victims.push(target);
   }
+  const landed: Entity[] = [];
   for (const target of victims) {
-    if (applyDamage(ctx, target, damage, { from: { x, z }, knockback })) hits++;
+    if (
+      applyDamage(ctx, target, damage * damageMultiplier(ctx, target), {
+        from: { x, z },
+        knockback,
+      })
+    ) {
+      hits++;
+      landed.push(target);
+    }
   }
+  afterBurst(ctx, x, y, z, landed);
   ctx.state.impacts.push({ x, y, z, age: 0, kind: 2 });
   ctx.state.feedback.shake = Math.max(ctx.state.feedback.shake, config.comet.burstShake);
   ctx.audio.play('burst', { volume: 0.8 });

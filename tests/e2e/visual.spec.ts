@@ -3,6 +3,7 @@ import {
   act,
   advance,
   advanceUntil,
+  BOON,
   DUMMY_CHEST,
   hold,
   KIND,
@@ -11,6 +12,7 @@ import {
   REWARD,
   RUN,
   SANDBOX,
+  shootOnce,
 } from './helpers';
 
 // Deterministic scenes: fixed seed, paused simulation, fixed number of steps.
@@ -98,4 +100,36 @@ test('comet burst', async ({ page }) => {
   await page.mouse.up({ button: 'right' });
   await advance(page, 3);
   await expect(page).toHaveScreenshot('comet-burst.png');
+});
+
+test('blessing choice', async ({ page }) => {
+  await openGame(page, RUN());
+  await act(page, 'grantBoon', BOON.moonlitBolts);
+  await act(page, 'goToRoom', 2, REWARD.boon);
+  await advance(page, 2);
+  await act(page, 'teleportToPickup');
+  await advance(page, 3);
+  await expect(page).toHaveScreenshot('blessing-choice.png');
+});
+
+test('status effects and an arc', async ({ page }) => {
+  await openGame(page, SANDBOX);
+  await act(page, 'freezeEnemies', 1);
+  for (const [kind, x] of [
+    [KIND.knight, 0],
+    [KIND.soldier, 2.4],
+    [KIND.soldier, -2.4],
+    [KIND.hound, 4.6],
+  ] as const) {
+    await act(page, 'spawnEnemy', kind, x, 6);
+  }
+  await act(page, 'setEnemyFacing', 0, 0);
+  await act(page, 'addStatus', 1, 2, 3);
+  await act(page, 'addStatus', 2, 0, 2);
+  await act(page, 'addStatus', 3, 1, 2);
+  await act(page, 'grantBoon', BOON.arcBolts);
+  await act(page, 'grantBoon', BOON.coldHeart);
+  await act(page, 'aimAt', 0, 1.3, 6);
+  await shootOnce(page);
+  await expect(page).toHaveScreenshot('status-and-arc.png');
 });

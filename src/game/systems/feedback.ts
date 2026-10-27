@@ -3,6 +3,7 @@ import type { GameSystem } from '../types';
 
 const STEP = 1 / 60;
 const MESSAGE_SECONDS = 2.4;
+const ARC_SECONDS = 0.18;
 
 /**
  * Hitstop, camera kick and shake, hurt flash, hit flash, damage numbers and
@@ -23,14 +24,31 @@ export const feedbackSystem: GameSystem = (ctx) => {
   fb.shake *= Math.exp(-f.shakeRecover * STEP);
   fb.hurt = Math.max(0, fb.hurt - STEP * 2.5);
 
-  for (const { flash } of world.with('flash')) {
+  for (const { flash, status } of world.with('flash')) {
     flash.time = Math.max(0, flash.time - STEP);
-    const on = flash.time > 0 ? 1 : 0;
+    // The hit flash wins; otherwise the strongest status tints the body.
+    const [r, g, b, intensity] =
+      flash.time > 0
+        ? [1, 1, 1, 1]
+        : !status
+          ? [0, 0, 0, 0]
+          : status.frozen > 0
+            ? [0.35, 0.65, 1, 0.9]
+            : status.chill > 0
+              ? [0.55, 0.85, 1, 0.2 + status.chill * 0.12]
+              : status.rot > 0
+                ? [0.45, 0.9, 0.2, 0.25 + Math.min(status.rot, 5) * 0.05]
+                : status.weight > 0
+                  ? [0.65, 0.45, 1, 0.2 + status.weight * 0.12]
+                  : [0, 0, 0, 0];
     for (const m of flash.materials) {
-      m.emissive.setRGB(1, 1, 1);
-      m.emissiveIntensity = on;
+      m.emissive.setRGB(r, g, b);
+      m.emissiveIntensity = intensity;
     }
   }
+  const arcs = state.arcs;
+  for (const a of arcs) a.age += STEP;
+  while (arcs.length > 0 && arcs[0]!.age > ARC_SECONDS) arcs.shift();
 
   const numbers = state.damageNumbers;
   for (const n of numbers) n.age += STEP;

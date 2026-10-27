@@ -1,5 +1,6 @@
 import type { RAPIER } from '@engine/physics';
 import { separation, type Disc } from '../ai/steering';
+import { timeFactor } from '../boons/status';
 import { ENEMY_GROUPS } from '../combat/groups';
 import { config } from '../config';
 import type { GameSystem } from '../types';
@@ -31,7 +32,7 @@ export function createEnemyMotionSystem(
       discs.push({ x: p.x, z: p.z, radius: player.hurtbox.radius });
     }
 
-    enemies.forEach(({ enemy, body }, i) => {
+    enemies.forEach(({ enemy, body, status }, i) => {
       if (enemy.state === 'dying' || enemy.state === 'rising') return;
       let vx = enemy.wantX;
       let vz = enemy.wantZ;
@@ -44,8 +45,8 @@ export function createEnemyMotionSystem(
       if (enemy.state === 'attack') {
         const k = config.enemies[enemy.kind];
         const lunge = 'lunge' in k ? k.lunge : 'leapSpeed' in k ? k.leapSpeed : 0;
-        vx = enemy.aimX * lunge;
-        vz = enemy.aimZ * lunge;
+        vx = enemy.aimX * lunge * timeFactor(status);
+        vz = enemy.aimZ * lunge * timeFactor(status);
       }
       const push = separation(discs[i]!, discs, config.enemy.separation, 6, i);
       vx += push.x + enemy.pushX;

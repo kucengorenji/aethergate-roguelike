@@ -3,6 +3,7 @@ import { grayboxArena } from './arenas/graybox';
 import { ProjectilePool } from './combat/projectiles';
 import type { RunPlan, Wave } from './run/plan';
 import type { Reward } from './run/rewards';
+import type { God } from './boons/data';
 
 export type Phase = 'playing' | 'dead';
 export type Mode = 'run' | 'encounter' | 'training' | 'sandbox';
@@ -49,6 +50,12 @@ export interface GameState {
     /** Seconds since the run started. */
     time: number;
   };
+  /** An open blessing choice: the demigod and the boon ids on its cards. */
+  choice: { god: God; options: string[] } | null;
+  /** Lightning arcs being drawn, with their age in seconds. */
+  arcs: { x1: number; y1: number; z1: number; x2: number; y2: number; z2: number; age: number }[];
+  /** Comet bursts waiting for their pull to finish (Collapsing Comet). */
+  pendingBursts: { x: number; y: number; z: number; time: number }[];
   /** A short message on screen (rewards), with its age in seconds. */
   message: { text: string; age: number } | null;
   encounter: {
@@ -81,6 +88,11 @@ export interface GameState {
   stats: { casts: number; hits: number };
 }
 
+/** True while the player cannot act: dead, or choosing a blessing. */
+export function controlsLocked(state: GameState): boolean {
+  return state.phase !== 'playing' || state.choice !== null;
+}
+
 export function createState(mode: Mode = 'run', waves: Wave[] = [], startDelay = 2): GameState {
   return {
     phase: 'playing',
@@ -99,6 +111,9 @@ export function createState(mode: Mode = 'run', waves: Wave[] = [], startDelay =
       time: 0,
     },
     message: null,
+    choice: null,
+    arcs: [],
+    pendingBursts: [],
     encounter: {
       status: mode === 'encounter' ? 'waiting' : 'off',
       waves,

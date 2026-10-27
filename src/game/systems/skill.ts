@@ -1,16 +1,23 @@
 import { aimPoint, muzzlePoint } from '../combat/aim';
-import { cometFuse } from '../combat/burst';
+import { burst, cometFuse } from '../combat/burst';
 import { ProjectileKind, Team } from '../combat/projectiles';
 import { config } from '../config';
+import { controlsLocked } from '../state';
 import type { GameSystem } from '../types';
 
 /** Right click hurls the Ash Comet toward the crosshair, then the skill recharges. */
 export const skillSystem: GameSystem = (ctx) => {
   const { input, dt, state } = ctx;
+  for (const pending of [...state.pendingBursts]) {
+    pending.time -= dt;
+    if (pending.time > 0) continue;
+    state.pendingBursts.splice(state.pendingBursts.indexOf(pending), 1);
+    burst(ctx, pending.x, pending.y, pending.z);
+  }
   for (const player of ctx.world.with('player', 'skill', 'action', 'body', 'look')) {
     const { skill, action } = player;
     skill.cooldown = Math.max(0, skill.cooldown - dt);
-    if (state.phase !== 'playing' || action.kind !== 'none') continue;
+    if (controlsLocked(state) || action.kind !== 'none') continue;
     if (!input.wasPressed('Mouse2') || skill.cooldown > 0) continue;
 
     const { speed, size, damage } = config.comet;

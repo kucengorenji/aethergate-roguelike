@@ -10,6 +10,8 @@ export interface HitOptions {
   knockback?: number;
   /** Interrupts the target's action and breaks guards (staff bash). */
   staggers?: boolean;
+  /** Damage over time and arcs: no hitstop or hit sound, so ticks do not stutter the game. */
+  quiet?: boolean;
 }
 
 /**
@@ -25,7 +27,7 @@ export function applyDamage(
 ): boolean {
   const { health, body, hurtbox, enemy } = target;
   if (!health || health.current <= 0 || health.invulnerable > 0) return false;
-  const { from, knockback = 0, staggers = false } = options;
+  const { from, knockback = 0, staggers = false, quiet = false } = options;
   const p = body?.translation();
 
   if (
@@ -49,7 +51,13 @@ export function applyDamage(
   if (target.flash) target.flash.time = config.feedback.flashSeconds;
   if (p) {
     const top = hurtbox ? hurtbox.halfHeight + hurtbox.radius : 1;
-    ctx.state.damageNumbers.push({ x: p.x, y: p.y + top + 0.15, z: p.z, value: amount, age: 0 });
+    ctx.state.damageNumbers.push({
+      x: p.x,
+      y: p.y + top + 0.15,
+      z: p.z,
+      value: Math.round(amount),
+      age: 0,
+    });
   }
 
   const { feedback } = ctx.state;
@@ -57,7 +65,7 @@ export function applyDamage(
     feedback.shake = config.feedback.hurtShake;
     feedback.hurt = 1;
     ctx.audio.play('hurt', { volume: 0.7 });
-  } else {
+  } else if (!quiet) {
     feedback.hitstop = config.feedback.hitstopSteps;
     ctx.state.stats.hits++;
     ctx.audio.play('hit', { volume: 0.6, rate: ctx.rng.range(0.9, 1.1) });

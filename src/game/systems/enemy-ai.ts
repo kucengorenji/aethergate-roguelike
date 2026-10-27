@@ -1,5 +1,6 @@
 import { think } from '../ai/brains';
 import { turnToward } from '../ai/steering';
+import { timeFactor } from '../boons/status';
 import { config } from '../config';
 import type { GameSystem } from '../types';
 
@@ -12,9 +13,12 @@ export const enemyAiSystem: GameSystem = ({ world, dt, state }) => {
   const player = world.with('player', 'body', 'health').first;
   const pp = player?.body.translation();
   const alive = state.phase === 'playing' && !!player && player.health.current > 0;
-  for (const { enemy, body, health } of world.with('enemy', 'body', 'health')) {
-    enemy.time += dt;
-    enemy.cooldown = Math.max(0, enemy.cooldown - dt);
+  for (const { enemy, body, health, status } of world.with('enemy', 'body', 'health')) {
+    // Chill slows an enemy's own clock (wind-ups last longer); frozen stops it.
+    const slow = enemy.state === 'dying' ? 1 : timeFactor(status);
+    const edt = dt * slow;
+    enemy.time += edt;
+    enemy.cooldown = Math.max(0, enemy.cooldown - edt);
     enemy.guardBroken = Math.max(0, enemy.guardBroken - dt);
     health.invulnerable = Math.max(0, health.invulnerable - dt);
     if (health.current <= 0 && enemy.state !== 'dying') {
@@ -22,7 +26,7 @@ export const enemyAiSystem: GameSystem = ({ world, dt, state }) => {
       enemy.time = 0;
       enemy.collider.setEnabled(false);
     }
-    if (config.enemy.frozen && enemy.state !== 'dying') {
+    if ((config.enemy.frozen || slow === 0) && enemy.state !== 'dying') {
       enemy.wantX = enemy.wantZ = 0;
       continue;
     }
@@ -57,8 +61,8 @@ export const enemyAiSystem: GameSystem = ({ world, dt, state }) => {
         enemy.side = enemy.side === 1 ? -1 : 1;
       }
     }
-    enemy.wantX = decision.wantX;
-    enemy.wantZ = decision.wantZ;
+    enemy.wantX = decision.wantX * slow;
+    enemy.wantZ = decision.wantZ * slow;
 
     // Melee wind-ups commit to the aim locked at their start; everything else tracks the player.
     const tracking = decision.track || (enemy.state === 'windup' && enemy.kind === 'caster');
@@ -68,7 +72,7 @@ export const enemyAiSystem: GameSystem = ({ world, dt, state }) => {
       enemy.facing = turnToward(
         enemy.facing,
         Math.atan2(-enemy.aimX, -enemy.aimZ),
-        config.enemy.turnRate * dt,
+        config.enemy.turnRate * edt,
       );
     }
   }

@@ -239,6 +239,109 @@ body {
   text-shadow: 0 1px 4px rgb(0 0 0 / 70%);
 }
 
+.boons-held {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+}
+
+.boons-held li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 9px 3px 7px;
+  border-radius: 6px;
+  background: var(--hud-bg);
+  font-size: 12px;
+}
+
+.boons-held li::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  transform: rotate(45deg);
+  background: var(--god);
+}
+
+.boon-choice {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 18px;
+  background: radial-gradient(rgb(10 8 6 / 45%), rgb(10 8 6 / 80%));
+}
+
+.boon-choice[hidden] {
+  display: none;
+}
+
+.boon-god {
+  margin: 0;
+  text-align: center;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 26px;
+  letter-spacing: 0.04em;
+  color: var(--god);
+  text-shadow: 0 2px 10px rgb(0 0 0 / 60%);
+}
+
+.boon-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 230px);
+  gap: 14px;
+}
+
+.boon-card {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-height: 190px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--god);
+  background: rgb(24 19 14 / 92%);
+  box-shadow: 0 0 24px rgb(0 0 0 / 45%);
+}
+
+.boon-card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.boon-card h2 {
+  margin: 0;
+  font-size: 17px;
+  color: var(--god);
+}
+
+.boon-card .slot {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.boon-card p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.boon-card .replaces {
+  margin-top: auto;
+  font-size: 12px;
+  opacity: 0.65;
+}
+
 .run-stats {
   position: fixed;
   top: 16px;

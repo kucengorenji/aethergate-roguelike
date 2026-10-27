@@ -63,3 +63,5 @@ Verify is never skipped.
 Each agent works on its own branch and its own spec.
 Use `git worktree add ../aethergate-<name> -b <branch>` so agents don't share a working directory.
 Plans list the files they touch, so two plans touching the same system are a signal to sequence them.
+E2E and perf suites are CPU-bound (software rendering), so two agents running them at once slow each other down and make perf numbers meaningless.
+Run `pnpm perf` (and the final `pnpm verify`) when no other agent is running a suite, and treat a perf failure measured under load as unproven until rerun alone.

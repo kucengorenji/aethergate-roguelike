@@ -39,7 +39,8 @@ export const runSystem: GameSystem = (ctx) => {
       break;
     }
     case 'reward':
-      if (!ctx.world.with('pickup').first) openDoors(ctx);
+      // A blessing choice keeps the doors shut until a card is taken.
+      if (!ctx.world.with('pickup').first && !state.choice) openDoors(ctx);
       break;
     case 'transition': {
       const fade = config.run.fadeSeconds;

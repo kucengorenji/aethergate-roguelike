@@ -1,6 +1,8 @@
 import type { CoreComponents } from '@engine/ecs';
 import type { RAPIER } from '@engine/physics';
 import type * as THREE from 'three/webgpu';
+import type { Held } from './boons/data';
+import type { Status } from './boons/status';
 import type { Offer, Reward } from './run/rewards';
 
 export type ActionKind = 'none' | 'dodge' | 'bash' | 'drink';
@@ -60,6 +62,10 @@ export interface Entity extends CoreComponents {
     dodgeCooldown: number;
   };
   flask?: { charges: number; max: number };
+  /** Blessings held, and landed bolts counted for Thunderhead. */
+  boons?: { held: Held; bolts: number };
+  /** Status effects from blessings (enemies and the training dummy). */
+  status?: Status;
   /** The Ash skill on right click. */
   skill?: { kind: 'comet'; element: Element | null; cooldown: number; maxCooldown: number };
   /** Seconds left of the white hit flash; materials listed are tinted. */

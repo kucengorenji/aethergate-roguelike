@@ -17,6 +17,13 @@ import { createState, type GameState, type Mode } from './state';
 import { actionsSystem } from './systems/actions';
 import { castSystem, focusSystem } from './systems/cast';
 import { skillSystem } from './systems/skill';
+import { statusSystem } from './systems/status';
+import { boonChoiceSystem } from './systems/boon-choice';
+import { createBoonsUiSystem } from './ui/boons';
+import { BOONS, GOD_ORDER, grant } from './boons/data';
+import { skillElement } from './boons/effects';
+import { addRot } from './boons/status';
+import { openBoonChoice } from './run/apply';
 import { deathSystem } from './systems/death';
 import { dummySystem } from './systems/dummy';
 import { enemyAiSystem } from './systems/enemy-ai';
@@ -80,6 +87,7 @@ export async function createGame(
     .addFixedSystem(wavesSystem)
     .addFixedSystem(runSystem)
     .addFixedSystem(interactSystem)
+    .addFixedSystem(boonChoiceSystem)
     .addFixedSystem(lookSystem)
     .addFixedSystem(actionsSystem)
     .addFixedSystem(locomotionSystem)
@@ -87,6 +95,7 @@ export async function createGame(
     .addFixedSystem(skillSystem)
     .addFixedSystem(focusSystem)
     .addFixedSystem(totemSystem)
+    .addFixedSystem(statusSystem)
     .addFixedSystem(enemyAiSystem)
     .addFixedSystem(createEnemyMotionSystem(enemyController))
     .addFixedSystem(enemyAttackSystem)
@@ -104,6 +113,7 @@ export async function createGame(
     .addFrameSystem(roomPropsSystem)
     .addFrameSystem(tpsCameraSystem)
     .addFrameSystem(createDamageNumbersSystem())
+    .addFrameSystem(createBoonsUiSystem())
     .addFrameSystem(createHudSystem());
 
   installDebugOverlay(game, ({ gui }) => {
@@ -154,6 +164,9 @@ export async function createGame(
         focus: caster!.focus,
         flasks: flask!.charges,
         skillCooldown: player.skill!.cooldown,
+        skillElement: player.skill!.element,
+        boons: player.boons!.held,
+        choice: ctx.state.choice,
         action: action!.kind,
         dummy:
           dummy && d
@@ -183,17 +196,20 @@ export async function createGame(
         pickups: [...ctx.world.with('pickup')].map(({ pickup }) => ({ ...pickup })),
         bodies: ctx.physics.world.bodies.len(),
         encounter: { ...ctx.state.encounter },
-        enemies: [...ctx.world.with('enemy', 'body', 'health')].map(({ enemy, body, health }) => {
-          const t = body.translation();
-          return {
-            kind: enemy.kind,
-            state: enemy.state,
-            x: t.x,
-            z: t.z,
-            health: health.current,
-            facing: enemy.facing,
-          };
-        }),
+        enemies: [...ctx.world.with('enemy', 'body', 'health')].map(
+          ({ enemy, body, health, status }) => {
+            const t = body.translation();
+            return {
+              kind: enemy.kind,
+              state: enemy.state,
+              x: t.x,
+              z: t.z,
+              health: health.current,
+              facing: enemy.facing,
+              status: status ? { ...status } : null,
+            };
+          },
+        ),
         projectiles: ctx.state.projectiles.count,
         projectileList: aliveProjectiles(ctx.state.projectiles),
         damageNumbers: ctx.state.damageNumbers.length,
@@ -243,6 +259,32 @@ export async function createGame(
       setEnemyFacing: (index, yaw) => {
         const e = [...ctx.world.with('enemy')][index];
         if (e) e.enemy.facing = yaw;
+      },
+      /** Grants BOONS[index] to the player. */
+      grantBoon: (index) => {
+        const id = BOONS[index]?.id;
+        if (!id) return;
+        grant(player.boons!.held, id);
+        player.skill!.element = skillElement(player.boons!.held);
+      },
+      /** Adds status stacks to enemy `index`: kind 0 Chill, 1 Weight, 2 Rot. */
+      addStatus: (index, kind, stacks) => {
+        const e = [...ctx.world.with('enemy', 'status')][index];
+        if (!e) return;
+        const s = e.status;
+        if (kind === 0) {
+          s.chill = Math.min(config.status.chill.maxStacks - 1, s.chill + stacks);
+          s.chillTime = config.status.chill.duration;
+        } else if (kind === 1) {
+          s.weight = Math.min(config.status.weight.maxStacks - 1, s.weight + stacks);
+          s.weightTime = config.status.weight.duration;
+        } else {
+          addRot(s, stacks, player.boons!.held.passive === 'fester');
+        }
+      },
+      /** Opens a blessing choice from GOD_ORDER[god]. */
+      offerBoons: (god) => {
+        openBoonChoice(ctx, GOD_ORDER[god] ?? 'moon');
       },
       newRun: (seed) => {
         startRun(ctx, seed);
@@ -372,6 +414,17 @@ function registerSounds(audio: Game<Entity, GameState>['ctx']['audio']): void {
     noiseBurst({ duration: 0.45, decay: 8, smoothing: 0.96, gain: 0.8, seed: 7 }),
   );
   audio.register('wave', sweep({ duration: 0.8, from: 110, to: 220, decay: 3, gain: 0.5 }));
+  audio.register('freeze', sweep({ duration: 0.4, from: 1800, to: 900, decay: 8, gain: 0.4 }));
+  audio.register(
+    'crush',
+    noiseBurst({ duration: 0.35, decay: 12, smoothing: 0.9, gain: 0.8, seed: 10 }),
+  );
+  audio.register(
+    'zap',
+    noiseBurst({ duration: 0.12, decay: 30, smoothing: 0.2, gain: 0.45, seed: 11 }),
+  );
+  audio.register('pull', sweep({ duration: 0.4, from: 90, to: 260, decay: 4, gain: 0.5 }));
+  audio.register('blessing', sweep({ duration: 0.9, from: 440, to: 1320, decay: 3, gain: 0.45 }));
   audio.register('reward', sweep({ duration: 0.6, from: 520, to: 1040, decay: 4, gain: 0.35 }));
   audio.register('pickup', sweep({ duration: 0.5, from: 660, to: 1320, decay: 5, gain: 0.45 }));
   audio.register('doors', sweep({ duration: 0.9, from: 140, to: 280, decay: 3, gain: 0.45 }));

@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { openGame } from './helpers';
 
 const budget = (
@@ -32,51 +32,52 @@ test('simulation step stays within the CPU budget', async ({ page }) => {
   expect(stats.p95).toBeLessThanOrEqual(budget.maxP95StepMs);
 });
 
+/**
+ * Heavy scenarios step the simulation inside the page (paused session) instead of
+ * timing the live loop: the budget is CPU time per simulation step, and in the
+ * live loop software rendering and any other load on the machine interleave with
+ * the steps and inflate the numbers (main failed the same way under load).
+ */
+async function stepLoad(page: Page, setup: string, mode: string) {
+  await openGame(page, `test&seed=1&paused&mode=${mode}`);
+  return page.evaluate((code) => {
+    const g = window.__game!;
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval
+    (new Function('g', code) as (game: typeof g) => void)(g);
+    g.advanceSync(30);
+    g.resetStepTimes();
+    g.advanceSync(240);
+    const s = g.inspect() as { projectiles: number; enemies: unknown[] };
+    return { ...g.stepTimes(), projectiles: s.projectiles, enemies: s.enemies.length };
+  }, setup);
+}
+
 test('200 projectiles stay within the CPU budget', async ({ page }) => {
-  await openGame(page, 'test&seed=1&mode=training');
-  await page.evaluate(() => {
-    window.__game!.act('spawnProjectiles', 200);
-  });
-  await page.waitForTimeout(500);
-  await page.evaluate(() => {
-    window.__game!.resetStepTimes();
-  });
-  await page.waitForTimeout(3000);
-  const stats = await page.evaluate(() => window.__game!.stepTimes());
-  const live = await page.evaluate(
-    () => (window.__game!.inspect() as { projectiles: number }).projectiles,
-  );
+  const stats = await stepLoad(page, "g.act('spawnProjectiles', 200);", 'training');
   console.log(
-    `200 projectiles, step ms: avg ${stats.avg.toFixed(3)}, p95 ${stats.p95.toFixed(3)}, max ${stats.max.toFixed(3)} over ${stats.count} steps, ${live} live`,
+    `200 projectiles, step ms: avg ${stats.avg.toFixed(3)}, p95 ${stats.p95.toFixed(3)}, max ${stats.max.toFixed(3)}, ${stats.projectiles} live`,
   );
-  expect(live).toBeGreaterThan(150);
-  expect(stats.count).toBeGreaterThan(60);
+  expect(stats.projectiles).toBeGreaterThan(150);
   expect(stats.avg).toBeLessThanOrEqual(budget.maxAvgStepMs);
   expect(stats.p95).toBeLessThanOrEqual(budget.maxP95StepMs);
 });
 
-test('30 enemies and 200 projectiles stay within the CPU budget', async ({ page }) => {
-  await openGame(page, 'test&seed=1&mode=sandbox');
-  await page.evaluate(() => {
-    const g = window.__game!;
-    for (let i = 0; i < 30; i++)
-      g.act('spawnEnemy', i % 4, -15 + (i % 6) * 6, -16 + Math.floor(i / 6) * 5);
-    g.act('spawnProjectiles', 200);
-  });
-  await page.waitForTimeout(500);
-  await page.evaluate(() => {
-    window.__game!.resetStepTimes();
-  });
-  await page.waitForTimeout(3000);
-  const stats = await page.evaluate(() => window.__game!.stepTimes());
-  const enemies = await page.evaluate(
-    () => (window.__game!.inspect() as { enemies: unknown[] }).enemies.length,
+test('30 enemies with statuses and 200 projectiles stay within the CPU budget', async ({
+  page,
+}) => {
+  // Every enemy carries chill and a little rot, so status ticking is part of the
+  // budget without rot killing enemies during the measurement.
+  const stats = await stepLoad(
+    page,
+    `for (let i = 0; i < 30; i++) g.act('spawnEnemy', i % 4, -15 + (i % 6) * 6, -16 + Math.floor(i / 6) * 5);
+     for (let i = 0; i < 30; i++) { g.act('addStatus', i, 0, 1); g.act('addStatus', i, 2, 1); }
+     g.act('spawnProjectiles', 200);`,
+    'sandbox',
   );
   console.log(
-    `30 enemies + 200 projectiles, step ms: avg ${stats.avg.toFixed(3)}, p95 ${stats.p95.toFixed(3)}, max ${stats.max.toFixed(3)} over ${stats.count} steps, ${enemies} enemies`,
+    `30 enemies + 200 projectiles, step ms: avg ${stats.avg.toFixed(3)}, p95 ${stats.p95.toFixed(3)}, max ${stats.max.toFixed(3)}, ${stats.enemies} enemies`,
   );
-  expect(enemies).toBe(30);
-  expect(stats.count).toBeGreaterThan(60);
+  expect(stats.enemies).toBe(30);
   expect(stats.avg).toBeLessThanOrEqual(budget.maxAvgStepMs);
   expect(stats.p95).toBeLessThanOrEqual(budget.maxP95StepMs);
 });

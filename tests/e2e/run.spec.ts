@@ -22,12 +22,18 @@ test('clearing a room offers its reward, then doors', async ({ page }) => {
   expect(s.doors.every((d) => !d.open)).toBe(true);
   await act(page, 'teleportToPickup');
   await advance(page, 2);
+  // The Blessing opens a choice (spec 0007); the doors wait for it.
+  s = await inspect(page);
+  expect(s.choice).not.toBeNull();
+  expect(s.doors.every((d) => !d.open)).toBe(true);
+  await page.keyboard.press('Digit1');
+  await advance(page, 2);
   s = await inspect(page);
   expect(s.run.boons).toBe(1);
   expect(s.run.status).toBe('choosing');
   expect(s.doors).toHaveLength(2);
   expect(s.doors.every((d) => d.open)).toBe(true);
-  await expect(page.locator('#toast')).toHaveText('Blessing received');
+  await expect(page.locator('#toast')).not.toBeEmpty();
   await expect(page.locator('#stat-boons')).toHaveText('1');
 });
 
@@ -37,6 +43,8 @@ test('a door loads the next room', async ({ page }) => {
   await advanceUntil(page, (s) => s.encounter.status === 'active', 200);
   await clearRoom(page);
   await act(page, 'teleportToPickup');
+  await advance(page, 2);
+  await page.keyboard.press('Digit1');
   await advance(page, 2);
   const offer = (await inspect(page)).doors.find((d) => d.index === 1)!.offer;
   await act(page, 'teleportToDoor', 1);

@@ -1,5 +1,5 @@
 import { config } from '../config';
-import { resetPlayer } from '../entities/player';
+import { placePlayer, resetPlayer } from '../entities/player';
 import type { Ctx, GameSystem } from '../types';
 import { startRun } from './run';
 import { resetEncounter } from './waves';
@@ -22,7 +22,7 @@ export const restartSystem: GameSystem = (ctx) => {
   }
   for (const player of ctx.world.with('player', 'body')) {
     if (player.body.translation().y < config.player.respawnBelowY) {
-      resetPlayer(ctx, player, state.layout);
+      placePlayer(ctx, player, state.layout);
     }
   }
 };
@@ -45,6 +45,9 @@ export function restartEncounter(ctx: Ctx): void {
   state.impacts.length = 0;
   state.damageNumbers.length = 0;
   Object.assign(state.feedback, { hitstop: 0, kick: 0, shake: 0, hurt: 0 });
+  state.choice = null;
+  state.arcs.length = 0;
+  state.pendingBursts.length = 0;
   state.phase = 'playing';
   state.elapsed = 0;
   ctx.timeScale = 1;

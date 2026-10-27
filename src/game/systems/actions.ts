@@ -1,5 +1,7 @@
 import { applyDamage } from '../combat/damage';
 import { config } from '../config';
+import { onBashHit, onDodgeEnd, onDodgeStart, damageMultiplier } from '../boons/effects';
+import { controlsLocked } from '../state';
 import type { Ctx, GameSystem } from '../types';
 import type { Entity } from '../components';
 import { yawBasis } from './look';
@@ -11,6 +13,7 @@ import { yawBasis } from './look';
 export const actionsSystem: GameSystem = (ctx) => {
   const { input, dt, state } = ctx;
   if (state.phase !== 'playing') return;
+  const locked = controlsLocked(state);
   for (const player of ctx.world.with('player', 'action', 'health', 'look', 'flask', 'body')) {
     const { action, health, look, flask, animator } = player;
     action.dodgeCooldown = Math.max(0, action.dodgeCooldown - dt);
@@ -20,6 +23,7 @@ export const actionsSystem: GameSystem = (ctx) => {
       action.time += dt;
       if (action.kind === 'dodge' && action.time >= config.dodge.duration) {
         action.dodgeCooldown = config.dodge.cooldown;
+        onDodgeEnd(ctx, player);
         endAction(player);
       } else if (action.kind === 'bash') {
         if (!action.applied && action.time >= config.bash.hitAt) {
@@ -36,6 +40,7 @@ export const actionsSystem: GameSystem = (ctx) => {
       }
       continue;
     }
+    if (locked) continue;
 
     if (input.wasPressed('Space') && action.dodgeCooldown <= 0) {
       const strafe = input.axis(['KeyA', 'ArrowLeft'], ['KeyD', 'ArrowRight']);
@@ -56,6 +61,7 @@ export const actionsSystem: GameSystem = (ctx) => {
       action.dirZ = dz;
       health.invulnerable = config.dodge.invulnerable;
       animator?.play('dodge', 0.05, 1, true);
+      onDodgeStart(ctx, player);
       ctx.audio.play('dodge', { volume: 0.5 });
     } else if (input.wasPressed('KeyF')) {
       startAction(player, 'bash');
@@ -92,6 +98,8 @@ function bashHit(ctx: Ctx, player: Entity): void {
     const dist = Math.hypot(dx, dz);
     if (dist - target.hurtbox.radius > range) continue;
     if (dist > 1e-3 && (dx * fx + dz * fz) / dist < cosHalfArc) continue;
-    applyDamage(ctx, target, damage, { from: p, knockback, staggers: true });
+    const amount = damage * damageMultiplier(ctx, target);
+    if (applyDamage(ctx, target, amount, { from: p, knockback, staggers: true }))
+      onBashHit(ctx, target);
   }
 }

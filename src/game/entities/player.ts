@@ -51,6 +51,7 @@ export function spawnPlayer(ctx: Ctx, layout: ArenaLayout): Entity {
     action: { kind: 'none', time: 0, dirX: 0, dirZ: -1, applied: false, dodgeCooldown: 0 },
     flask: { charges: config.flask.charges, max: config.flask.charges },
     skill: { kind: 'comet', element: null, cooldown: 0, maxCooldown: config.comet.cooldown },
+    boons: { held: { duos: [] }, bolts: 0 },
   });
 }
 
@@ -69,7 +70,7 @@ export function placePlayer(ctx: Ctx, player: Entity, layout: ArenaLayout): void
   ctx.snap(player);
 }
 
-/** Puts the player back at spawn with full health, focus and flasks, standing still. */
+/** Puts the player back at spawn with full health, focus and flasks, no blessings, standing still. */
 export function resetPlayer(ctx: Ctx, player: Entity, layout: ArenaLayout): void {
   placePlayer(ctx, player, layout);
   if (player.health) Object.assign(player.health, { current: player.health.max, invulnerable: 0 });
@@ -78,6 +79,7 @@ export function resetPlayer(ctx: Ctx, player: Entity, layout: ArenaLayout): void
   if (player.action)
     Object.assign(player.action, { kind: 'none', time: 0, applied: false, dodgeCooldown: 0 });
   if (player.flask) player.flask.charges = player.flask.max;
-  if (player.skill) player.skill.cooldown = 0;
+  if (player.skill) Object.assign(player.skill, { cooldown: 0, element: null });
+  if (player.boons) player.boons = { held: { duos: [] }, bolts: 0 };
   ctx.snap(player);
 }
