@@ -1,10 +1,12 @@
 // Fails when a model in public/ exceeds its budget in perf-budget.json
 // (file size, triangles, skeleton bones). Reads only the glTF JSON chunk, so
 // meshopt-compressed buffers need no decoding.
-import { readFileSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { join, relative } from 'node:path';
+import { coveredPaths, totalMB, unlicensed } from './asset-checks.mjs';
 
-const budgets = JSON.parse(readFileSync('perf-budget.json', 'utf8')).assets ?? {};
+const config = JSON.parse(readFileSync('perf-budget.json', 'utf8'));
+const budgets = config.assets ?? {};
 
 function glbJson(file) {
   const data = readFileSync(file);
@@ -38,6 +40,23 @@ for (const [path, budget] of Object.entries(budgets)) {
     failures.push(`${path}: ${s.triangles} triangles > ${budget.maxTriangles}`);
   if (s.bones > budget.maxBones) failures.push(`${path}: ${s.bones} bones > ${budget.maxBones}`);
 }
+// Every shipped asset counts toward the download budget and needs a license line.
+const shipped = [];
+const walk = (dir) => {
+  for (const name of readdirSync(dir)) {
+    const p = join(dir, name);
+    if (statSync(p).isDirectory()) walk(p);
+    else if (name !== '.gitkeep') shipped.push(relative('.', p));
+  }
+};
+walk('public/assets');
+const mb = totalMB(shipped.map((f) => statSync(f).size));
+console.log(`assets: ${mb.toFixed(2)} / ${config.assetsTotalMB} MB in ${shipped.length} files`);
+if (mb > config.assetsTotalMB)
+  failures.push(`assets ${mb.toFixed(2)} MB > ${config.assetsTotalMB} MB`);
+const missing = unlicensed(shipped, coveredPaths(readFileSync('assets-src/LICENSES.md', 'utf8')));
+for (const f of missing) failures.push(`${f} has no line in assets-src/LICENSES.md`);
+
 if (failures.length) {
   console.error(`\nAsset budget exceeded:\n- ${failures.join('\n- ')}`);
   process.exit(1);
