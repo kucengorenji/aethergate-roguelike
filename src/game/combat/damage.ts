@@ -1,25 +1,52 @@
 import type { Entity } from '../components';
 import { config } from '../config';
 import type { Ctx } from '../types';
+import { inFrontArc } from './guard';
+
+export interface HitOptions {
+  /** Where the hit comes from (projectile position, attacker), for guards and knockback. */
+  from?: { x: number; z: number };
+  /** Push speed in m/s away from `from`. */
+  knockback?: number;
+  /** Interrupts the target's action and breaks guards (staff bash). */
+  staggers?: boolean;
+}
 
 /**
- * Applies damage to an entity with health, honoring invulnerability. Triggers
- * the hit flash, a damage number, and hit or hurt feedback. Returns whether the
- * damage landed.
+ * Applies damage to an entity with health, honoring invulnerability and
+ * shields. Triggers the hit flash, a damage number, and hit or hurt feedback.
+ * Returns whether the damage landed.
  */
 export function applyDamage(
   ctx: Ctx,
   target: Entity,
   amount: number,
-  from?: { x: number; z: number },
-  knockback = 0,
+  options: HitOptions = {},
 ): boolean {
-  const { health, body, hurtbox } = target;
+  const { health, body, hurtbox, enemy } = target;
   if (!health || health.current <= 0 || health.invulnerable > 0) return false;
-  health.current = Math.max(0, health.current - amount);
-
-  if (target.flash) target.flash.time = config.feedback.flashSeconds;
+  const { from, knockback = 0, staggers = false } = options;
   const p = body?.translation();
+
+  if (
+    enemy &&
+    p &&
+    from &&
+    guardUp(target) &&
+    inFrontArc(enemy.facing, p.x, p.z, from.x, from.z, config.enemies.knight.guardArcDegrees)
+  ) {
+    if (staggers) {
+      enemy.guardBroken = config.enemies.knight.guardBreak;
+      stagger(target, config.enemies.knight.guardBreak);
+      ctx.audio.play('guardbreak', { volume: 0.7 });
+    } else {
+      ctx.audio.play('block', { volume: 0.5, rate: ctx.rng.range(0.9, 1.1) });
+    }
+    return false;
+  }
+
+  health.current = Math.max(0, health.current - amount);
+  if (target.flash) target.flash.time = config.feedback.flashSeconds;
   if (p) {
     const top = hurtbox ? hurtbox.halfHeight + hurtbox.radius : 1;
     ctx.state.damageNumbers.push({ x: p.x, y: p.y + top + 0.15, z: p.z, value: amount, age: 0 });
@@ -36,12 +63,35 @@ export function applyDamage(
     ctx.audio.play('hit', { volume: 0.6, rate: ctx.rng.range(0.9, 1.1) });
   }
 
-  if (knockback > 0 && from && p && target.dummy) {
+  if (from && p) {
     const dx = p.x - from.x;
     const dz = p.z - from.z;
     const len = Math.hypot(dx, dz) || 1;
-    target.dummy.velocity.x += (dx / len) * knockback;
-    target.dummy.velocity.z += (dz / len) * knockback;
+    const push = knockback || (enemy ? config.enemy.flinchPush : 0);
+    if (target.dummy) {
+      target.dummy.velocity.x += (dx / len) * push;
+      target.dummy.velocity.z += (dz / len) * push;
+    } else if (enemy) {
+      enemy.pushX += (dx / len) * push;
+      enemy.pushZ += (dz / len) * push;
+    }
   }
+  if (staggers && enemy && health.current > 0) stagger(target, config.enemy.staggerSeconds);
   return true;
+}
+
+/** Knights hold their shield up unless the guard is broken or they are mid-swing. */
+export function guardUp(target: Entity): boolean {
+  const e = target.enemy;
+  if (!e || e.kind !== 'knight' || e.guardBroken > 0) return false;
+  return e.state === 'chase' || e.state === 'windup' || e.state === 'rising';
+}
+
+function stagger(target: Entity, seconds: number): void {
+  const e = target.enemy!;
+  if (e.state === 'dying' || e.state === 'rising') return;
+  e.state = 'stagger';
+  // Stagger lasts config.enemy.staggerSeconds; start later for a longer one.
+  e.time = config.enemy.staggerSeconds - seconds;
+  e.hit = false;
 }

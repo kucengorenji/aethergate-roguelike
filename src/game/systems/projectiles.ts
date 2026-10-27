@@ -81,7 +81,7 @@ export const projectilesSystem: GameSystem = (ctx) => {
     const hy = ay + my * bestT;
     const hz = az + mz * bestT;
     if (hitTarget) {
-      applyDamage(ctx, hitTarget, pool.damage[i]!, { x: ax, z: az });
+      applyDamage(ctx, hitTarget, pool.damage[i]!, { from: { x: ax, z: az } });
       impact(ctx, hx, hy, hz, pool.kind[i]!);
       pool.release(i);
     } else if (hitWall) {

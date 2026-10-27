@@ -1,5 +1,15 @@
 import { expect, test } from '@playwright/test';
-import { act, advance, DUMMY_CHEST, hold, openGame, pixelsForRadians } from './helpers';
+import {
+  act,
+  advance,
+  advanceUntil,
+  DUMMY_CHEST,
+  hold,
+  KIND,
+  openGame,
+  pixelsForRadians,
+  SANDBOX,
+} from './helpers';
 
 // Deterministic scenes: fixed seed, paused simulation, fixed number of steps.
 // Update baselines intentionally with `pnpm e2e:update` and review the diff.
@@ -39,4 +49,18 @@ test('death banner', async ({ page }) => {
   await act(page, 'fireOrbAtPlayer', 0, 1.1, 10);
   await advance(page, 60);
   await expect(page).toHaveScreenshot('death-banner.png');
+});
+
+test('wave fight with a telegraph', async ({ page }) => {
+  await openGame(page, SANDBOX);
+  await act(page, 'spawnEnemy', KIND.knight, 0, 9);
+  await act(page, 'spawnEnemy', KIND.soldier, -3.5, 7);
+  await act(page, 'spawnEnemy', KIND.caster, 5, 4);
+  await advanceUntil(
+    page,
+    (s) => s.enemies.some((e) => e.kind === 'knight' && e.state === 'windup'),
+    240,
+  );
+  await advance(page, 25);
+  await expect(page).toHaveScreenshot('wave-fight.png');
 });

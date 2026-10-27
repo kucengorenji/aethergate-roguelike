@@ -74,7 +74,7 @@ Follow `docs/workflows/progress.md` (Claude Code: the `progress` skill):
 ## Testing rules
 
 - Pure logic (math, rules, data transforms) gets Vitest unit tests next to the file (`foo.ts` and `foo.test.ts`).
-- Player-facing behavior gets a Playwright test in `tests/e2e/`. Drive it through `window.__game` (see `src/engine/test-hook.ts`): open with `?test&seed=1&paused`, step time with `advance(n)`, read state with `inspect()`, trigger setups with `act(name, ...)`. Pointer lock and mouse look are simulated with the built-in `act('pointerLock', 1)` and `act('look', dx, dy)`.
+- Player-facing behavior gets a Playwright test in `tests/e2e/`. Drive it through `window.__game` (see `src/engine/test-hook.ts`): open with `?test&seed=1&paused`, step time with `advance(n)` (or `advanceUntil` in `tests/e2e/helpers.ts`, which steps inside the page), read state with `inspect()`, trigger setups with `act(name, ...)`. Pointer lock and mouse look are simulated with the built-in `act('pointerLock', 1)` and `act('look', dx, dy)`.
 - Add whatever state a new feature needs to `inspect()` and any setup shortcuts to `actions` in `src/game/index.ts`.
 - Visual baselines live next to the specs. Changing them must be intentional.
 - Never weaken, skip or delete a test to make it pass. A flaky test is a bug: find the source of the nondeterminism.

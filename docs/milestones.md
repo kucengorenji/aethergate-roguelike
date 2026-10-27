@@ -55,11 +55,11 @@ Weeks: 2
 
 Weeks: 3
 
-- [ ] AI state machine with steering and separation, attack telegraphs.
-- [ ] Hollow Soldier, Thorn Caster, Ward Knight, Rot Hound.
-- [ ] Wave spawner and a room clear condition.
-- [ ] Player death and a restart.
-- [ ] **Exit:** a single arena with 3 waves is tense, readable and fair.
+- [x] AI state machine with steering and separation, attack telegraphs (spec 0004).
+- [x] Hollow Soldier, Thorn Caster, Ward Knight, Rot Hound.
+- [x] Wave spawner and a room clear condition.
+- [x] Player death and a restart.
+- [~] **Exit:** a single arena with 3 waves is tense, readable and fair.
 
 ## M4: Run structure and boons
 

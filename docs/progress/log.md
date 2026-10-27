@@ -7,6 +7,9 @@ See `docs/workflows/progress.md`.
 
 ## 2026-10-27
 
+- M3: All M3 tasks built (spec 0004 done): four enemy kinds with telegraphed attacks, knight shields, three waves with a cleared state, training and sandbox modes. Verify green, 70 unit and 44 E2E tests, 30 enemies plus 200 projectiles at 1.19 ms per step. Exit check waits for a playtest.
+- M3: Fixed: stacked enemies locked each other in the character controller; enemies now only collide with the level and the player and separate by steering.
+- M3: Fixed flaky E2E timeouts at the root: in-page `advanceUntil`, three Playwright workers (CPU-bound software rendering), serial perf tests.
 - M3: Started M3 on branch `feat/m3-enemies`, writing spec 0004 (enemies and combat rooms).
 - M2: Exit check passed: Mikael playtested movement and combat with a real mouse and approved the feel. M1 and M2 done.
 - M2: All M2 tasks built (spec 0003 done): pooled bolts with focus, dodge roll with i-frames, staff bash, flask, training dummy and totem, hitstop, damage numbers, HUD. Verify green, 56 unit and 29 E2E tests, 200 projectiles at 0.42 ms per step. Exit check waits for a human playtest.

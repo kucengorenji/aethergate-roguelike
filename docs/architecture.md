@@ -77,6 +77,17 @@ Each step a projectile sweeps from its previous to its new position: a ray again
 Actor colliders (player, dummy, later enemies) use the `ACTOR_GROUPS` collision group, and level rays use `WORLD_RAYS`, so the camera and projectiles ignore actors' physics shapes and hit them through hurtboxes instead.
 Crosshair aim and the camera share one pure function (`cameraRig`), so bolts go exactly where the crosshair points.
 
+## Enemies
+
+Each enemy has one `enemy` component with its kind, AI state and timers.
+The decision logic is a pure function (`src/game/ai/brains.ts`) from a small view of the world to the next state and a desired velocity, so it is unit-tested without Rapier.
+Systems run it (`enemy-ai`), move enemies through one shared character controller with separation steering (`enemy-motion`), resolve attacks (`enemy-attack`) and remove the dead (`enemy-death`); a frame system presents poses, glows and ground markers from the state (`enemy-pose`).
+Enemies collide with the level and the player but not with each other (`ENEMY_GROUPS`), because overlapping capsules lock the character controller.
+
+## Modes
+
+`?mode=encounter` (default) runs the waves, `?mode=training` is the practice courtyard with the dummy and totem, `?mode=sandbox` is the empty arena for tests that spawn enemies themselves.
+
 ## Audio
 
 `ctx.audio` creates its AudioContext on the first click or key press (browser autoplay rules).

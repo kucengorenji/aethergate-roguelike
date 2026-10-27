@@ -92,6 +92,6 @@ function bashHit(ctx: Ctx, player: Entity): void {
     const dist = Math.hypot(dx, dz);
     if (dist - target.hurtbox.radius > range) continue;
     if (dist > 1e-3 && (dx * fx + dz * fz) / dist < cosHalfArc) continue;
-    applyDamage(ctx, target, damage, p, knockback);
+    applyDamage(ctx, target, damage, { from: p, knockback, staggers: true });
   }
 }

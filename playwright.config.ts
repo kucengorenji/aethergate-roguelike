@@ -5,6 +5,11 @@ const PORT = 4173;
 export default defineConfig({
   testDir: 'tests/e2e',
   fullyParallel: true,
+  // Each worker drives a software-rendered (SwiftShader) browser that uses several
+  // cores. Measured on 12 cores: 3, 4 and 6 workers all take about 2.3 minutes in
+  // total, but more workers make every test slower and push long scenarios toward
+  // the timeout. Three keeps headroom without costing wall time.
+  workers: 3,
   forbidOnly: !!process.env.CI,
   retries: 0,
   reporter: process.env.CI ? 'line' : [['list'], ['html', { open: 'never' }]],

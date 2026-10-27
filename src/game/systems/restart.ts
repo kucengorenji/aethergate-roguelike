@@ -2,6 +2,7 @@ import { grayboxArena } from '../arenas/graybox';
 import { config } from '../config';
 import { resetPlayer } from '../entities/player';
 import type { Ctx, GameSystem } from '../types';
+import { resetEncounter } from './waves';
 
 /** R restarts the encounter at any time; falling out of the world resets the player. */
 export const restartSystem: GameSystem = (ctx) => {
@@ -16,9 +17,10 @@ export const restartSystem: GameSystem = (ctx) => {
   }
 };
 
-/** Full health, focus and flasks, no projectiles, dummies and totems reset. */
+/** Full health, focus and flasks, no projectiles or enemies, waves from the start. */
 export function restartEncounter(ctx: Ctx): void {
   const { state } = ctx;
+  resetEncounter(ctx);
   for (const player of ctx.world.with('player')) resetPlayer(ctx, player, grayboxArena);
   for (const { dummy, health, model } of ctx.world.with('dummy', 'health')) {
     health.current = health.max;

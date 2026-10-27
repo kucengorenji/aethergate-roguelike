@@ -14,6 +14,8 @@ export function createHudSystem(): GameSystem {
   const flasks = $('flasks');
   const death = $('death');
   const hurt = $('hurt');
+  const wave = $('wave');
+  const cleared = $('cleared');
   const last = new Map<string, string>();
   const set = (key: string, value: string, apply: () => void) => {
     if (last.get(key) === value) return;
@@ -31,6 +33,20 @@ export function createHudSystem(): GameSystem {
     set('dead', String(dead), () => {
       death.hidden = !dead;
       crosshair.hidden = dead;
+    });
+    const enc = state.encounter;
+    const waveText =
+      enc.status === 'active'
+        ? `Wave ${enc.wave + 1} / ${enc.total}`
+        : enc.status === 'intermission'
+          ? `Wave ${enc.wave + 2} / ${enc.total} incoming`
+          : '';
+    set('wave', waveText, () => {
+      wave.hidden = waveText === '';
+      wave.textContent = waveText;
+    });
+    set('cleared', String(enc.status === 'cleared' && !dead), () => {
+      cleared.hidden = enc.status !== 'cleared' || dead;
     });
     set('hurt', state.feedback.hurt.toFixed(2), () => {
       hurt.style.opacity = state.feedback.hurt.toFixed(2);

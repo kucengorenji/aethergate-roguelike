@@ -1,6 +1,8 @@
 import { ProjectilePool } from './combat/projectiles';
 
 export type Phase = 'playing' | 'dead';
+export type Mode = 'encounter' | 'training' | 'sandbox';
+export type EncounterStatus = 'off' | 'waiting' | 'active' | 'intermission' | 'cleared';
 
 export interface DamageNumber {
   x: number;
@@ -21,6 +23,15 @@ export interface Impact {
 
 export interface GameState {
   phase: Phase;
+  mode: Mode;
+  encounter: {
+    status: EncounterStatus;
+    /** Index of the current (or next) wave. */
+    wave: number;
+    total: number;
+    /** Seconds in the current status. */
+    timer: number;
+  };
   /** Seconds of play since the last reset. */
   elapsed: number;
   projectiles: ProjectilePool;
@@ -40,9 +51,16 @@ export interface GameState {
   stats: { casts: number; hits: number };
 }
 
-export function createState(): GameState {
+export function createState(mode: Mode = 'encounter', waves = 0): GameState {
   return {
     phase: 'playing',
+    mode,
+    encounter: {
+      status: mode === 'encounter' ? 'waiting' : 'off',
+      wave: 0,
+      total: waves,
+      timer: 0,
+    },
     elapsed: 0,
     projectiles: new ProjectilePool(256),
     impacts: [],

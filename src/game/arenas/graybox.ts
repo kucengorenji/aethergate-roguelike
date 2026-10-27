@@ -16,6 +16,8 @@ export interface ArenaLayout {
   halfSize: number;
   wallHeight: number;
   spawn: { x: number; z: number; yaw: number };
+  /** Where enemies may rise, on open floor. */
+  enemySpawns: { x: number; z: number }[];
   boxes: ArenaBox[];
 }
 
@@ -40,6 +42,20 @@ export const grayboxArena: ArenaLayout = {
   halfSize: 20,
   wallHeight: 4,
   spawn: { x: 0, z: 14, yaw: 0 },
+  enemySpawns: [
+    { x: -11, z: -17 },
+    { x: -6, z: -16 },
+    { x: 7, z: -15 },
+    { x: 16, z: -15 },
+    { x: -16, z: -6 },
+    { x: 17, z: -9 },
+    { x: -16, z: 8 },
+    { x: 16, z: 6 },
+    { x: -9, z: 0 },
+    { x: 8, z: -1 },
+    { x: -12, z: 16 },
+    { x: 11, z: 16 },
+  ],
   boxes: [
     // Broken arch: two tall pillars and a lintel that only spans part of the gap.
     pillar(-3, -2, 6),

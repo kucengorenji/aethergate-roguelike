@@ -19,7 +19,7 @@ test('bolts damage the dummy', async ({ page }) => {
   await holdFire(page, 1);
   await advance(page, 20);
   const s = await inspect(page);
-  expect(s.dummy.health).toBe(290);
+  expect(s.dummy!.health).toBe(290);
   expect(s.stats.hits).toBe(1);
   expect(s.damageNumbers).toBe(1);
 });
@@ -101,14 +101,14 @@ test('bash hits in front only', async ({ page }) => {
   await act(page, 'setLook', 0, 0); // facing -z, the dummy at z 5 is behind
   await page.keyboard.press('KeyF');
   await advance(page, 30);
-  expect((await inspect(page)).dummy.health).toBe(300);
+  expect((await inspect(page)).dummy!.health).toBe(300);
 
   await act(page, 'teleportPlayer', 1.2, CENTER_Y, 6.8);
   await page.keyboard.press('KeyF');
   await advance(page, 12);
   const s = await inspect(page);
-  expect(s.dummy.health).toBe(285);
-  expect(s.dummy.z).toBeLessThan(4.9);
+  expect(s.dummy!.health).toBe(285);
+  expect(s.dummy!.z).toBeLessThan(4.9);
 });
 
 test('flask heals and runs out', async ({ page }) => {
@@ -154,14 +154,14 @@ test('dummy collapses and returns', async ({ page }) => {
   await holdFire(page, 1);
   await advance(page, 20);
   let s = await inspect(page);
-  expect(s.dummy.health).toBe(0);
-  expect(s.dummy.down).toBe(true);
+  expect(s.dummy!.health).toBe(0);
+  expect(s.dummy!.down).toBe(true);
   await advance(page, 90);
-  expect((await inspect(page)).dummy.down).toBe(true);
+  expect((await inspect(page)).dummy!.down).toBe(true);
   await advance(page, 45);
   s = await inspect(page);
-  expect(s.dummy.down).toBe(false);
-  expect(s.dummy.health).toBe(300);
+  expect(s.dummy!.down).toBe(false);
+  expect(s.dummy!.health).toBe(300);
 });
 
 test('totem orbs can kill, R restores', async ({ page }) => {

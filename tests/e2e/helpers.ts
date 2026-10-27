@@ -21,7 +21,11 @@ export interface Snapshot {
   focus: number;
   flasks: number;
   action: 'none' | 'dodge' | 'bash' | 'drink';
-  dummy: { health: number; x: number; z: number; down: boolean };
+  dummy: { health: number; x: number; z: number; down: boolean } | null;
+  mode: 'encounter' | 'training' | 'sandbox';
+  bodies: number;
+  encounter: { status: string; wave: number; total: number; timer: number };
+  enemies: { kind: string; state: string; x: number; z: number; health: number; facing: number }[];
   projectiles: number;
   projectileList: Vec3[];
   damageNumbers: number;
@@ -32,12 +36,13 @@ export interface Snapshot {
 /**
  * Opens the game with the test hook and waits until it has rendered a frame.
  * Pointer lock is simulated unless `lock` is false, because headless browsers
- * cannot reliably lock the pointer. The training totem is off unless `totem`
- * is true, so its orbs do not interfere with unrelated tests.
+ * cannot reliably lock the pointer. The default is training mode (dummy, no
+ * waves); the training totem is off unless `totem` is true, so its orbs do not
+ * interfere with unrelated tests.
  */
 export async function openGame(
   page: Page,
-  query = 'test&seed=1&paused',
+  query = 'test&seed=1&paused&mode=training',
   { lock = true, totem = false }: { lock?: boolean; totem?: boolean } = {},
 ): Promise<void> {
   const errors: string[] = [];
@@ -88,3 +93,37 @@ export async function holdFire(page: Page, steps: number): Promise<void> {
 
 /** The training dummy's chest, a good aim point. */
 export const DUMMY_CHEST = [1.2, 1.2, 5] as const;
+
+export const ENCOUNTER = 'test&seed=1&paused&mode=encounter';
+export const SANDBOX = 'test&seed=1&paused&mode=sandbox';
+export const KIND = { soldier: 0, caster: 1, knight: 2, hound: 3 } as const;
+
+/**
+ * Advances one step at a time inside the page until `done` holds, then renders
+ * a frame. One round trip instead of one per step, so it is fast and exact.
+ * `done` runs in the browser: it may only use its argument, not outer variables.
+ * Returns the number of steps taken.
+ */
+export async function advanceUntil(
+  page: Page,
+  done: (s: Snapshot) => boolean,
+  maxSteps: number,
+): Promise<number> {
+  const steps = await page.evaluate(
+    ([source, max]) => {
+      // The predicate is shipped as source because functions cannot cross into the page.
+      // eslint-disable-next-line @typescript-eslint/no-implied-eval
+      const check = new Function('s', `return (${source})(s);`) as (s: unknown) => boolean;
+      const game = window.__game!;
+      for (let n = 1; n <= max; n++) {
+        game.advanceSync(1);
+        if (check(game.inspect())) return n;
+      }
+      return -1;
+    },
+    [done.toString(), maxSteps] as const,
+  );
+  await page.evaluate(() => window.__game!.nextFrame());
+  if (steps < 0) throw new Error(`condition not met within ${maxSteps} steps: ${done.toString()}`);
+  return steps;
+}

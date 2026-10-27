@@ -13,6 +13,11 @@ export interface TestHook {
   paused: (value?: boolean) => boolean;
   /** Simulate `steps` fixed steps synchronously, then wait for one rendered frame. */
   advance: (steps: number) => Promise<void>;
+  /**
+   * Simulate `steps` fixed steps without waiting for a frame. For tight loops
+   * in tests that only read `inspect()`; DOM and camera update on the next frame.
+   */
+  advanceSync: (steps: number) => void;
   /** Wait for the next rendered frame. */
   nextFrame: () => Promise<void>;
   /** Per-step CPU time summary in ms. */
@@ -73,6 +78,9 @@ export function installTestHook<E extends CoreComponents, S>(
     advance: async (steps) => {
       game.advance(steps);
       await nextFrame();
+    },
+    advanceSync: (steps) => {
+      game.advance(steps);
     },
     nextFrame,
     stepTimes: () => game.stepTimes.summary(),

@@ -3,6 +3,8 @@ import type { RAPIER } from '@engine/physics';
 import type * as THREE from 'three/webgpu';
 
 export type ActionKind = 'none' | 'dodge' | 'bash' | 'drink';
+export type EnemyKind = 'soldier' | 'caster' | 'knight' | 'hound';
+export type EnemyState = 'rising' | 'chase' | 'windup' | 'attack' | 'recover' | 'stagger' | 'dying';
 
 /** All components in the game. Add new optional fields here as the game grows. */
 export interface Entity extends CoreComponents {
@@ -67,5 +69,37 @@ export interface Entity extends CoreComponents {
     gem: THREE.MeshStandardMaterial;
     /** Where orbs leave from. */
     muzzle: { x: number; y: number; z: number };
+  };
+  enemy?: {
+    kind: EnemyKind;
+    state: EnemyState;
+    /** Seconds in the current state. */
+    time: number;
+    /** Yaw the enemy faces (0 faces -z). */
+    facing: number;
+    /** Attack direction locked at the start of a wind-up (unit, horizontal). */
+    aimX: number;
+    aimZ: number;
+    /** Seconds until a ranged enemy may start another wind-up. */
+    cooldown: number;
+    /** Which way it strafes or flanks: 1 or -1. */
+    side: 1 | -1;
+    /** Whether the current attack already dealt its hit. */
+    hit: boolean;
+    /** Desired velocity from the AI this step (m/s). */
+    wantX: number;
+    wantZ: number;
+    /** Knockback velocity that decays (m/s). */
+    pushX: number;
+    pushZ: number;
+    /** Seconds spent blocked by cover, and seconds left of walking around it. */
+    stuck: number;
+    detour: number;
+    /** Seconds the guard stays broken (knights). */
+    guardBroken: number;
+    collider: RAPIER.Collider;
+    /** Telegraph glow (eyes, gem) and the ground marker for area attacks. */
+    glow: THREE.MeshStandardMaterial;
+    marker: THREE.Mesh;
   };
 }

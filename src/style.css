@@ -152,6 +152,54 @@ body {
   display: none;
 }
 
+.wave {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: var(--hud-bg);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  pointer-events: none;
+}
+
+.wave[hidden],
+.cleared[hidden] {
+  display: none;
+}
+
+.cleared {
+  position: fixed;
+  top: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  gap: 6px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.cleared h1 {
+  margin: 0;
+  font-size: 44px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #ffd98a;
+  font-family: Georgia, 'Times New Roman', serif;
+  text-shadow: 0 2px 12px rgb(0 0 0 / 55%);
+}
+
+.cleared p {
+  margin: 0;
+  font-size: 15px;
+  text-shadow: 0 1px 4px rgb(0 0 0 / 70%);
+}
+
 .death {
   position: fixed;
   inset: 0;

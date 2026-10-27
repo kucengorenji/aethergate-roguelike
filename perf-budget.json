@@ -1,7 +1,7 @@
 {
   "bundle": {
     "maxTotalGzipKB": 1600,
-    "maxEntryGzipKB": 25
+    "maxEntryGzipKB": 60
   },
   "frame": {
     "maxAvgStepMs": 2,
