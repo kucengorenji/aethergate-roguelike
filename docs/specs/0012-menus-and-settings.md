@@ -1,6 +1,6 @@
 # 0012: Title screen, pause menu and settings
 
-Status: approved
+Status: done
 Owner: Mikael (built by a parallel agent in a Herdr pane)
 
 ## Problem
@@ -21,12 +21,12 @@ M5 needs a title screen, a pause menu and settings that persist (spec 0011 provi
 
 ## Acceptance criteria
 
-- [ ] Opening without `?mode` shows the title; Begin closes it; with `?mode=...` there is no title.
-- [ ] Losing the pointer lock during play opens the pause panel and suspends the game; Resume closes it and resumes; no pause before the first lock, while dead or while choosing a blessing.
-- [ ] Settings change sensitivity, volume and quality at once, and all three are restored after a reload.
-- [ ] Quality Low lowers the render scale and turns shadows off; High restores them.
-- [ ] Menus work with the keyboard (Tab, Enter, Esc back).
-- [ ] Visual baselines of the title, pause and settings panels look right; `pnpm verify` passes.
+- [x] Opening without `?mode` shows the title; Begin closes it; with `?mode=...` there is no title. Verified: `menus.spec.ts` › the title opens without a mode and Begin closes it.
+- [x] Losing the pointer lock during play opens the pause panel and suspends the game; Resume closes it and resumes; no pause before the first lock, while dead or while choosing a blessing. Verified: `menus.spec.ts` › losing the pointer pauses the game and Resume continues; no pause before the first lock, while dead or while choosing.
+- [x] Settings change sensitivity, volume and quality at once, and all three are restored after a reload. Verified: `menus.spec.ts` › settings apply at once and survive a reload.
+- [x] Quality Low lowers the render scale and turns shadows off; High restores them. Verified: same E2E test (pixel ratio 0.75 and no shadows, then Medium 1024 and High 2048), `src/game/quality.test.ts`.
+- [x] Menus work with the keyboard (Tab, Enter, Esc back). Verified: `menus.spec.ts` › menus work with the keyboard. Esc goes back from settings; the title and the pause menu are the top level, because browsers do not let Esc relock the pointer.
+- [x] Visual baselines of the title, pause and settings panels look right; `pnpm verify` passes. Verified: `menus.spec.ts-snapshots` reviewed at 1280x720; `E2E_PORT=4174 pnpm verify` passed 2026-10-27.
 
 ## Out of scope
 
