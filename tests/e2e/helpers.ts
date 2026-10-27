@@ -6,6 +6,20 @@ export interface Vec3 {
   z: number;
 }
 
+export interface Decal {
+  kind: string;
+  shape: number;
+  x: number;
+  z: number;
+  sx: number;
+  sz: number;
+  yaw: number;
+  progress: number;
+  param: number;
+  color: number;
+  alpha: number;
+}
+
 export interface Snapshot {
   phase: 'playing' | 'dead';
   elapsed: number;
@@ -63,6 +77,31 @@ export interface Snapshot {
   settings: { sensitivity: number; volume: number };
   /** What the renderer and the sun use right now. */
   render: { pixelRatio: number; shadows: boolean; shadowMapSize: number };
+  /** Effects (spec 0014). */
+  vfx: {
+    /** Live particles, and per emitter tag: live now and emitted since start. */
+    particles: number;
+    live: Record<string, number>;
+    emitted: Record<string, number>;
+    trails: {
+      kind: number;
+      look: number;
+      length: number;
+      flown: number;
+      width: number;
+      color: number;
+    }[];
+    decals: Decal[];
+    ash: number;
+    density: number;
+    /** Ice shells drawn (frozen bodies), falling meteors, lightning segments. */
+    ice: number;
+    meteors: number;
+    lightning: number;
+    bloom: boolean;
+    /** `config.vfx.colors`, to compare effect colors with. */
+    palette: Record<string, number>;
+  };
   layout: string;
   run: {
     seed: number | null;
@@ -153,6 +192,10 @@ export const HUB = 'test&seed=1&paused&mode=hub';
 export const STATION = { grace: 0, altar: 1, rack: 2 } as const;
 export const REWARD = { boon: 0, shards: 1, heal: 2, flask: 3 } as const;
 export const SANDBOX = 'test&seed=1&paused&mode=sandbox';
+export const STAFF = { glint: 0, lance: 1, scatter: 2 } as const;
+export const QUALITY = { low: 0, medium: 1, high: 2 } as const;
+/** Kinds for the `addStatus` action. */
+export const STATUS = { chill: 0, weight: 1, rot: 2, freeze: 3 } as const;
 export const KIND = {
   soldier: 0,
   caster: 1,

@@ -1,5 +1,6 @@
 import { PostPipeline } from '@engine/post';
 import type * as THREE from 'three/webgpu';
+import { config } from '../config';
 import { effectsProfile } from '../quality';
 import { createAshRenderSystem } from '../systems/ash-render';
 import { createAuraRenderSystem } from '../systems/aura-render';
@@ -87,5 +88,6 @@ function inspectVfx(ctx: Ctx, post: PostPipeline) {
     meteors: state.hazards.filter((h) => meteorAt(h.x, h.z, h.time, meteor)).length,
     lightning: state.arcs.length * LIGHTNING.segments,
     bloom: post.bloom,
+    palette: config.vfx.colors,
   };
 }

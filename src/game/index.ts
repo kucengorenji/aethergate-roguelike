@@ -247,7 +247,7 @@ export async function createGame(
         suspended: ctx.suspended,
         save: structuredClone(ctx.state.save),
         settings: { sensitivity: config.look.sensitivity, volume: ctx.audio.masterVolume },
-        render: { ...renderQuality(game), bloom: vfx.post.bloom },
+        render: renderQuality(game),
         vfx: vfx.inspect(),
         hazards: ctx.state.hazards.map((h) => ({ ...h })),
         burnRing: ctx.state.burnRing,
