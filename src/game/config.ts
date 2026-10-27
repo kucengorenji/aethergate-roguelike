@@ -25,6 +25,15 @@ export const config = {
     minPitch: -0.75,
     maxPitch: 0.9,
   },
+  /**
+   * Render quality presets (settings menu). `pixelRatio` is canvas pixels per CSS
+   * pixel, at most the screen's own ratio; a shadow map size of 0 turns shadows off.
+   */
+  quality: {
+    low: { pixelRatio: 0.75, shadowMapSize: 0 },
+    medium: { pixelRatio: 1, shadowMapSize: 1024 },
+    high: { pixelRatio: 2, shadowMapSize: 2048 },
+  },
   camera: {
     fov: 65,
     /** Distance behind the shoulder pivot. */
