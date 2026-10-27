@@ -100,12 +100,13 @@ Triangles per asset after export.
 
 ## Materials and textures
 
-- One shared environment material with a painted gradient atlas (at most 1024 px, WebP or KTX2): each swatch is a vertical gradient, lighter on top and darker toward the base, and kit UVs are placed on swatches.
-  All kit pieces share it, so a room batches into few draw calls.
-- Characters use one atlas each, at most 512 px, painted the same way.
+- Colors come from named materials that the game recolors from `config.colors`, as the player pipeline already does (`assets-src/README.md`), so the palette stays tunable in one place.
+- The painted gradient is baked into vertex colors that multiply the material color: lighter on upward faces and toward the top, darker toward the base (the bottom 20 percent of tall pieces), with a little per-face tone noise so facets read as painted.
+  This needs no textures, keeps downloads small, and lets every kit piece share a handful of materials so a room batches into few draw calls.
+- A small texture (at most 512 px, WebP) is used only where vertex colors cannot carry the detail: sigils, the boss's star points if quads are not enough, painted faces.
 - No normal maps and no metal-roughness maps.
   Stone, cloth, wood and fur use roughness 0.9 and metalness 0; armor uses roughness 0.6 and metalness at most 0.2, because there is no environment map to reflect.
-- Vertex colors add per-instance tone variation and a darker base (the bottom 20 percent of tall pieces), so repeated pieces do not tile visibly.
+- Instances add tone variation through instance colors, so repeated pieces do not tile visibly.
 - Emissive is reserved for owners of the color language: magic, eyes, the grace site, doors, crystals, rewards.
   Only emissive above an HDR intensity of 1 blooms, so lit stone never glows.
 
