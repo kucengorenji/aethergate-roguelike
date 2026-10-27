@@ -82,4 +82,20 @@ describe('Input', () => {
     fire('blur');
     expect(input.isDown('KeyW')).toBe(false);
   });
+
+  it('reports a lost pointer lock for one step, and never without a lock first', () => {
+    const { input } = setup();
+    input.setPointerLocked(false);
+    input.beginStep();
+    expect(input.lockLost).toBe(false);
+    input.endStep();
+    input.setPointerLocked(true);
+    input.setPointerLocked(false);
+    input.beginStep();
+    expect(input.lockLost).toBe(true);
+    input.endStep();
+    expect(input.lockLost).toBe(false);
+    input.beginStep();
+    expect(input.lockLost).toBe(false);
+  });
 });
