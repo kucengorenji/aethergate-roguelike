@@ -96,10 +96,10 @@ Work runs in waves of parallel agents in Herdr panes; HUD and VFX are built in c
 - [x] Wave 0, concept: style frames for the hall, a combat room and the boss arena, turnaround sheets for the player, four enemies and two bosses, an environment kit sheet, a HUD and icon mock; Mikael picks the direction (spec 0013).
 - [x] A visual style guide in `docs/design/style-guide.md` from the approved frames: palette, shapes, materials, lighting, outline, UI.
 - [x] An asset budget check (40 MB) and a license manifest for every asset (source, tool, plan, date).
-- [ ] Wave 1, characters: player and the four enemies modeled, rigged and animated (idle, move, attack wind-up and strike, hit, death, spawn), plus the Ward Captain and the Starfallen Knight with their special attacks.
-- [ ] Wave 1, environment: a modular ruin kit (walls, pillars, arches, floors, rubble, graves, roots, braziers), the Kindled Hall's stations, doors, reward tokens and the distant tree, replacing the graybox in every layout.
-- [ ] Wave 1, audio: every sound effect, three music tracks (hall, combat with intensity, boss), ambience per room type, voice lines for the demigods and bosses.
-- [ ] VFX in code: spell trails and impacts, comet, status auras (chill, weight, rot, arcs), hit sparks, spawn and death, telegraph decals, ash particles, bloom and color grade.
+- [~] Wave 1, characters: player and the four enemies modeled, rigged and animated (idle, move, attack wind-up and strike, hit, death, spawn), plus the Ward Captain and the Starfallen Knight with their special attacks.
+- [~] Wave 1, environment: a modular ruin kit (walls, pillars, arches, floors, rubble, graves, roots, braziers), the Kindled Hall's stations, doors, reward tokens and the distant tree, replacing the graybox in every layout.
+- [~] Wave 1, audio: every sound effect, three music tracks (hall, combat with intensity, boss), ambience per room type, voice lines for the demigods and bosses.
+- [~] VFX in code: spell trails and impacts, comet, status auras (chill, weight, rot, arcs), hit sparks, spawn and death, telegraph decals, ash particles, bloom and color grade.
 - [ ] HUD redesign: ornamental frames, icons for blessings and rewards, boss bar, damage numbers, menus restyled to the style guide.
 - [ ] Wave 2, integration: lighting per room, fog and post per room type, mix and music states, perf and budget pass on the target iGPU.
 - [ ] **Exit:** a screenshot of any room looks like a game, not a prototype, and a minute of play sounds like one.
