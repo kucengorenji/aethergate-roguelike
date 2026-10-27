@@ -350,11 +350,11 @@ export const config = {
       spore: 0x5f7a2a,
       meteor: 0x3a2f2a,
     },
-    glow: { core: 1.6, trail: 1.6, spark: 3, rim: 2.6, ember: 3 },
+    glow: { core: 1.6, trail: 2, spark: 3, rim: 2.6, ember: 3 },
     /** Projectile trails: length and width in meters, sparkles shed per step. */
     trails: {
       glint: { length: 1.6, width: 0.11, motes: 1 },
-      lance: { length: 2.8, width: 0.07, motes: 2 },
+      lance: { length: 2.8, width: 0.09, motes: 2 },
       scatter: { length: 0.9, width: 0.08, motes: 0.5 },
       orb: { length: 1.1, width: 0.26, motes: 0.8 },
       comet: { length: 3.2, width: 0.5, motes: 3 },
