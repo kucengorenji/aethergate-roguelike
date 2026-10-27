@@ -40,3 +40,10 @@ export function applyQuality(
     if (light.castShadow) light.shadow.mapSize.set(profile.shadowMapSize, profile.shadowMapSize);
   });
 }
+
+export type EffectsProfile = Pick<(typeof config.quality)['high'], 'bloom' | 'particles' | 'ash'>;
+
+/** Effects for a quality level: bloom, the particle density multiplier and the ash flake count. */
+export function effectsProfile(quality: Quality): EffectsProfile {
+  return config.quality[quality];
+}

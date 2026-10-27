@@ -1,7 +1,7 @@
 import { aimPoint, muzzlePoint } from '../combat/aim';
 import { ProjectileKind, Team } from '../combat/projectiles';
 import { config } from '../config';
-import { STAFF_BY_ID } from '../meta/staffs';
+import { STAFF_BY_ID, STAFFS } from '../meta/staffs';
 import { controlsLocked } from '../state';
 import type { GameSystem } from '../types';
 
@@ -23,6 +23,7 @@ export const castSystem: GameSystem = (ctx) => {
     const { focusCost: cost, speed, radius, interval, count, spread, pierce } = staff;
     const damage = staff.damage + (player.loadout?.boltBonus ?? 0);
     const { life } = config.bolt;
+    const look = STAFFS.indexOf(staff);
     if (caster.focus < cost) {
       if (input.wasPressed('Mouse0')) ctx.audio.play('empty', { volume: 0.5 });
       // Holding fire on empty counts as casting, so focus only refills after letting
@@ -54,6 +55,7 @@ export const castSystem: GameSystem = (ctx) => {
         damage,
         life,
         pierce,
+        look,
       });
     }
     caster.focus -= cost;

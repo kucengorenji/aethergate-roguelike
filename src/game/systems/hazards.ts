@@ -1,6 +1,7 @@
 import { ringRadius } from '../ai/bosses';
 import { applyDamage } from '../combat/damage';
 import { config } from '../config';
+import { ImpactKind } from '../state';
 import type { GameSystem } from '../types';
 
 /**
@@ -16,7 +17,14 @@ export const hazardsSystem: GameSystem = (ctx) => {
     h.time -= dt;
     if (h.time > 0) continue;
     state.hazards.splice(state.hazards.indexOf(h), 1);
-    state.impacts.push({ x: h.x, y: 0.3, z: h.z, age: 0, kind: 2 });
+    state.impacts.push({
+      x: h.x,
+      y: 0.3,
+      z: h.z,
+      age: 0,
+      kind: ImpactKind.Meteor,
+      radius: h.radius,
+    });
     ctx.audio.play('burst', { volume: 0.5, rate: 1.3 });
     if (player && p && Math.hypot(p.x - h.x, p.z - h.z) <= h.radius + player.hurtbox.radius) {
       applyDamage(ctx, player, h.damage, { from: { x: h.x, z: h.z } });

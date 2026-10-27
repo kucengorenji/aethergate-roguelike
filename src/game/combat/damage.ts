@@ -1,5 +1,6 @@
 import type { Entity } from '../components';
 import { config } from '../config';
+import type { HitMark } from '../state';
 import type { Ctx } from '../types';
 import { isBoss } from '../ai/bosses';
 import { inFrontArc } from './guard';
@@ -38,6 +39,7 @@ export function applyDamage(
     guardUp(target) &&
     inFrontArc(enemy.facing, p.x, p.z, from.x, from.z, config.enemies.knight.guardArcDegrees)
   ) {
+    mark(ctx, target, p, from, 'block');
     if (staggers) {
       enemy.guardBroken = config.enemies.knight.guardBreak;
       stagger(target, config.enemies.knight.guardBreak, true);
@@ -60,6 +62,8 @@ export function applyDamage(
       age: 0,
     });
   }
+
+  if (!quiet && p) mark(ctx, target, p, from, target.player ? 'player' : 'enemy');
 
   const { feedback } = ctx.state;
   if (target.player) {
@@ -87,6 +91,31 @@ export function applyDamage(
   }
   if (staggers && enemy && health.current > 0) stagger(target, config.enemy.staggerSeconds);
   return true;
+}
+
+/**
+ * Records where a blow met the target for hit sparks: on the side facing the
+ * attacker at chest height, or the target's center without an attacker.
+ */
+function mark(
+  ctx: Ctx,
+  target: Entity,
+  p: { x: number; y: number; z: number },
+  from: { x: number; z: number } | undefined,
+  kind: HitMark['kind'],
+): void {
+  const radius = target.hurtbox?.radius ?? 0.4;
+  let dx = from ? p.x - from.x : 0;
+  let dz = from ? p.z - from.z : 0;
+  const len = Math.hypot(dx, dz);
+  if (len > 1e-6) {
+    dx /= len;
+    dz /= len;
+  } else {
+    dx = dz = 0;
+  }
+  const chest = (target.hurtbox?.halfHeight ?? 0.5) * 0.4;
+  ctx.state.hits.push({ x: p.x - dx * radius, y: p.y + chest, z: p.z - dz * radius, dx, dz, kind });
 }
 
 /** Knights and the Captain hold their shield up unless the guard is broken or they are mid-swing. */

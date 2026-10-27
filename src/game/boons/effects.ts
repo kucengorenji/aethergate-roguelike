@@ -2,6 +2,7 @@ import { isBoss } from '../ai/bosses';
 import { applyDamage } from '../combat/damage';
 import type { Entity } from '../components';
 import { config } from '../config';
+import { ImpactKind } from '../state';
 import type { Ctx } from '../types';
 import { BOON_BY_ID, holds, type Held } from './data';
 import { addChill, addRot, addWeight } from './status';
@@ -88,7 +89,7 @@ export function onDodgeStart(ctx: Ctx, player: Entity): void {
   const p = player.body!.translation();
   if (has(ctx, 'pale-step')) {
     for (const e of within(ctx, p.x, p.z, config.boons.novaRadius)) chill(ctx, e, 1);
-    ctx.state.impacts.push({ x: p.x, y: 0.3, z: p.z, age: 0, kind: 3 });
+    ctx.state.impacts.push({ x: p.x, y: 0.3, z: p.z, age: 0, kind: ImpactKind.Nova });
   }
   if (has(ctx, 'static-step')) {
     const nearest = livingEnemies(ctx)
@@ -111,10 +112,13 @@ export function onDodgeEnd(ctx: Ctx, player: Entity): void {
       });
       weigh(ctx, e, 1);
     }
-    ctx.state.impacts.push({ x: p.x, y: 0.3, z: p.z, age: 0, kind: 2 });
+    ctx.state.impacts.push({ x: p.x, y: 0.3, z: p.z, age: 0, kind: ImpactKind.Meteor, radius: r });
     ctx.audio.play('slam', { volume: 0.5, rate: 1.3 });
   }
-  if (has(ctx, 'spore-step')) for (const e of within(ctx, p.x, p.z, r)) rot(ctx, e, 2);
+  if (has(ctx, 'spore-step')) {
+    for (const e of within(ctx, p.x, p.z, r)) rot(ctx, e, 2);
+    ctx.state.impacts.push({ x: p.x, y: 0.3, z: p.z, age: 0, kind: ImpactKind.Spore, radius: r });
+  }
 }
 
 /** A bash landed on `target`. */
@@ -145,7 +149,7 @@ function crush(ctx: Ctx, target: Entity): void {
   const damage = config.status.weight.crushDamage * (chilled && has(ctx, 'shatter') ? 2 : 1);
   applyDamage(ctx, target, damage, { staggers: true, quiet: true });
   const p = target.body?.translation();
-  if (p) ctx.state.impacts.push({ x: p.x, y: p.y, z: p.z, age: 0, kind: 4 });
+  if (p) ctx.state.impacts.push({ x: p.x, y: p.y, z: p.z, age: 0, kind: ImpactKind.Gravity });
   ctx.audio.play('crush', { volume: 0.6 });
 }
 

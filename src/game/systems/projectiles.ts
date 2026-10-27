@@ -4,6 +4,7 @@ import { applyDamage } from '../combat/damage';
 import { WORLD_RAYS } from '../combat/groups';
 import { sweepSphereCapsule } from '../combat/hit';
 import { ProjectileKind, Team } from '../combat/projectiles';
+import type { Impact } from '../state';
 import type { Entity } from '../components';
 import type { GameSystem } from '../types';
 
@@ -101,7 +102,7 @@ export const projectilesSystem: GameSystem = (ctx) => {
       const damage = pool.damage[i]! * (playerBolt ? damageMultiplier(ctx, hitTarget) : 1);
       const landed = applyDamage(ctx, hitTarget, damage, { from: { x: ax, z: az } });
       if (landed && playerBolt) onBoltHit(ctx, hitTarget, damage);
-      impact(ctx, hx, hy, hz, pool.kind[i]!);
+      impact(ctx, hx, hy, hz, pool.kind[i]!, pool.look[i]!);
       if (pool.pierce[i]! > 0) {
         // A piercing bolt continues from just past the target it went through.
         pool.pierce[i]!--;
@@ -113,7 +114,7 @@ export const projectilesSystem: GameSystem = (ctx) => {
         pool.release(i);
       }
     } else if (hitWall) {
-      impact(ctx, hx, hy, hz, pool.kind[i]!);
+      impact(ctx, hx, hy, hz, pool.kind[i]!, pool.look[i]!);
       if (pool.kind[i] === ProjectileKind.Bolt) ctx.audio.play('wall', { volume: 0.25 });
       pool.release(i);
     } else {
@@ -125,11 +126,12 @@ export const projectilesSystem: GameSystem = (ctx) => {
 };
 
 function impact(
-  ctx: { state: { impacts: { x: number; y: number; z: number; age: number; kind: number }[] } },
+  ctx: { state: { impacts: Impact[] } },
   x: number,
   y: number,
   z: number,
   kind: number,
+  look: number,
 ): void {
-  if (ctx.state.impacts.length < 64) ctx.state.impacts.push({ x, y, z, age: 0, kind });
+  if (ctx.state.impacts.length < 64) ctx.state.impacts.push({ x, y, z, age: 0, kind, look });
 }

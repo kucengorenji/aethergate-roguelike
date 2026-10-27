@@ -5,10 +5,10 @@ import type { GameSystem } from '../types';
 /**
  * Presents AI state (frame system): rising out of the ground, leaning back in
  * a wind-up, lunging, wobbling when staggered, sinking when dying; eye glow
- * ramps up through a wind-up; ground markers show spawn points and area attacks.
+ * ramps up through a wind-up. Ground decals are `telegraph-render`'s job.
  */
 export const enemyPoseSystem: GameSystem = ({ world }) => {
-  for (const { enemy, model, object3d } of world.with('enemy', 'model', 'object3d')) {
+  for (const { enemy, model } of world.with('enemy', 'model')) {
     const k = config.enemies[enemy.kind];
     const t = enemy.time;
     let sink = 0;
@@ -48,48 +48,5 @@ export const enemyPoseSystem: GameSystem = ({ world }) => {
     model.position.y = -(k.halfHeight + k.radius) - sink;
     model.rotation.set(lean, enemy.facing, roll);
     enemy.glow.emissiveIntensity = glow;
-
-    const marker = enemy.marker;
-    const pos = object3d.position;
-    if (enemy.state === 'rising') {
-      marker.visible = true;
-      marker.position.set(pos.x, 0.02, pos.z);
-      marker.scale.setScalar(0.9);
-    } else if (enemy.state === 'windup' && (enemy.kind === 'knight' || enemy.move === 'slam')) {
-      const kn = enemy.kind === 'knight' ? config.enemies.knight : config.enemies.captain;
-      const windup = stateDuration(enemy.kind, 'windup', enemy.move, enemy.phase);
-      marker.visible = true;
-      marker.position.set(
-        pos.x + enemy.aimX * kn.slamDistance,
-        0.02,
-        pos.z + enemy.aimZ * kn.slamDistance,
-      );
-      marker.scale.setScalar(kn.slamRadius * Math.min(1, 0.3 + t / windup));
-    } else if (enemy.move === 'well' && (enemy.state === 'windup' || enemy.state === 'attack')) {
-      marker.visible = true;
-      marker.position.set(pos.x, 0.02, pos.z);
-      marker.scale.setScalar(config.enemies.starfallen.wellRadius);
-    } else {
-      marker.visible = false;
-    }
-
-    // Boss telegraphs: the charge path and the sweep cone, shown through the wind-up.
-    const shapes = enemy.shapes;
-    if (shapes) {
-      const winding = enemy.state === 'windup';
-      shapes.line.visible = winding && enemy.move === 'charge';
-      shapes.cone.visible = winding && enemy.move === 'sweep';
-      if (shapes.line.visible) {
-        const c = config.enemies.captain;
-        shapes.line.position.set(pos.x, 0.03, pos.z);
-        shapes.line.rotation.y = enemy.facing;
-        shapes.line.scale.set(c.radius * 2.4, 1, c.chargeSpeed * c.chargeTime);
-      }
-      if (shapes.cone.visible) {
-        shapes.cone.position.set(pos.x, 0.03, pos.z);
-        shapes.cone.rotation.y = enemy.facing;
-        shapes.cone.scale.setScalar(config.enemies.starfallen.sweepRadius);
-      }
-    }
   }
 };

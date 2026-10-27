@@ -1,8 +1,9 @@
 import { applyDamage } from '../combat/damage';
 import { inFrontArc } from '../combat/guard';
-import { ProjectileKind, Team } from '../combat/projectiles';
+import { OrbLook, ProjectileKind, Team } from '../combat/projectiles';
 import { config } from '../config';
 import type { Entity } from '../components';
+import { ImpactKind } from '../state';
 import type { Ctx, GameSystem } from '../types';
 
 /**
@@ -47,6 +48,14 @@ export const enemyAttackSystem: GameSystem = (ctx) => {
         if (Math.hypot(pp.x - cx, pp.z - cz) <= k.slamRadius + player.hurtbox.radius) {
           applyDamage(ctx, player, k.damage, { from });
         }
+        ctx.state.impacts.push({
+          x: cx,
+          y: 0.3,
+          z: cz,
+          age: 0,
+          kind: ImpactKind.Slam,
+          radius: k.slamRadius,
+        });
         ctx.state.feedback.shake = Math.max(ctx.state.feedback.shake, 0.12);
         ctx.audio.play('slam', { volume: 0.7 });
         break;
@@ -79,6 +88,7 @@ export const enemyAttackSystem: GameSystem = (ctx) => {
           radius: 0.22,
           damage: k.damage,
           life: 4,
+          look: OrbLook.Thorn,
         });
         ctx.audio.play('orb', { volume: 0.4, rate: 1.4 });
         break;
@@ -109,7 +119,14 @@ function bossMove(
       if (Math.hypot(pp.x - cx, pp.z - cz) <= c.slamRadius + playerRadius) {
         applyDamage(ctx, player, c.damage, { from });
       }
-      ctx.state.impacts.push({ x: cx, y: 0.3, z: cz, age: 0, kind: 4 });
+      ctx.state.impacts.push({
+        x: cx,
+        y: 0.3,
+        z: cz,
+        age: 0,
+        kind: ImpactKind.Slam,
+        radius: c.slamRadius,
+      });
       ctx.state.feedback.shake = Math.max(ctx.state.feedback.shake, 0.15);
       ctx.audio.play('slam', { volume: 0.8 });
       break;
@@ -140,7 +157,14 @@ function bossMove(
       if (enemy.time + ctx.dt < s.wellTime) break;
       enemy.hit = true;
       if (dist <= s.wellRadius + playerRadius) applyDamage(ctx, player, s.wellDamage, { from });
-      ctx.state.impacts.push({ x: p.x, y: 0.4, z: p.z, age: 0, kind: 4 });
+      ctx.state.impacts.push({
+        x: p.x,
+        y: 0.4,
+        z: p.z,
+        age: 0,
+        kind: ImpactKind.Gravity,
+        radius: s.wellRadius,
+      });
       ctx.state.feedback.shake = Math.max(ctx.state.feedback.shake, 0.2);
       ctx.audio.play('burst', { volume: 0.8, rate: 0.7 });
       break;

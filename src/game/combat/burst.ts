@@ -1,6 +1,7 @@
 import { afterBurst, beforeBurst, damageMultiplier, has } from '../boons/effects';
 import type { Entity } from '../components';
 import { config } from '../config';
+import { ImpactKind } from '../state';
 import type { Ctx } from '../types';
 import { applyDamage } from './damage';
 
@@ -28,7 +29,7 @@ const PULL_SECONDS = 0.35;
 export function cometEnded(ctx: Ctx, x: number, y: number, z: number): void {
   if (beforeBurst(ctx, x, z)) {
     ctx.state.pendingBursts.push({ x, y, z, time: PULL_SECONDS });
-    ctx.state.impacts.push({ x, y, z, age: 0, kind: 4 });
+    ctx.state.impacts.push({ x, y, z, age: 0, kind: ImpactKind.Gravity });
     ctx.audio.play('pull', { volume: 0.6 });
   } else {
     burst(ctx, x, y, z);
@@ -60,7 +61,7 @@ export function burst(ctx: Ctx, x: number, y: number, z: number): number {
     }
   }
   afterBurst(ctx, x, y, z, landed);
-  ctx.state.impacts.push({ x, y, z, age: 0, kind: 2 });
+  ctx.state.impacts.push({ x, y, z, age: 0, kind: ImpactKind.Comet });
   ctx.state.feedback.shake = Math.max(ctx.state.feedback.shake, config.comet.burstShake);
   ctx.audio.play('burst', { volume: 0.8 });
   return hits;

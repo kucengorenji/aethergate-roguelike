@@ -11,6 +11,7 @@ import { aimAnglesAt } from './combat/camera-rig';
 import { ProjectileKind, Team } from './combat/projectiles';
 import { spawnDummy } from './entities/dummy';
 import { ENEMY_KINDS, spawnEnemy } from './entities/enemy';
+import { STAFFS } from './meta/staffs';
 import { spawnArena, spawnEnvironment } from './entities/level';
 import { resetPlayer, spawnPlayer } from './entities/player';
 import { loadPlayerModel, type PlayerModelKind } from './entities/player-model';
@@ -21,7 +22,6 @@ import { castSystem, focusSystem } from './systems/cast';
 import { skillSystem } from './systems/skill';
 import { statusSystem } from './systems/status';
 import { hazardsSystem } from './systems/hazards';
-import { createHazardRenderSystem } from './systems/hazard-render';
 import { boonChoiceSystem } from './systems/boon-choice';
 import { createBoonsUiSystem } from './ui/boons';
 import { applySettings, closePanel, openPanel, saveGame, useSaveWriter } from './save';
@@ -66,6 +66,8 @@ export async function createGame(
   params: LaunchParams,
 ): Promise<Game<Entity, GameState>> {
   const mode = readMode();
+  // The effects chunk loads while the save and the character load.
+  const vfxModule = import('./vfx');
   // Saved progress and settings load before the first frame, like the character.
   const save = await openSave(indexedDbStore());
   const modelKind = readModelKind();
@@ -78,6 +80,7 @@ export async function createGame(
       mode,
       mode === 'encounter' ? config.encounter.waves : [],
       config.encounter.startDelay,
+      params.seed,
     ),
   });
   const { ctx } = game;
@@ -111,6 +114,11 @@ export async function createGame(
   // and the character idles behind the menu instead of standing in its bind pose.
   if (!new URLSearchParams(window.location.search).has('mode')) openPanel(ctx, 'title');
 
+  const vfx = (await vfxModule).createVfx(ctx, game.renderer);
+  game.setRenderPass(() => {
+    vfx.post.render();
+  });
+
   game
     .addFixedSystem(pauseSystem)
     .addFixedSystem(restartSystem)
@@ -134,6 +142,8 @@ export async function createGame(
     .addFixedSystem(dummySystem)
     .addFixedSystem(enemyDeathSystem)
     .addFixedSystem(deathSystem)
+    // Effects see this step's new impacts and arcs before feedback ages them.
+    .addFixedSystem(vfx.emit)
     .addFixedSystem(feedbackSystem)
     .addFixedSystem(playerAnimationSystem)
     .addFixedSystem(footstepsSystem)
@@ -142,13 +152,20 @@ export async function createGame(
     .addFrameSystem(playerFacingSystem)
     .addFrameSystem(enemyPoseSystem)
     .addFrameSystem(roomPropsSystem)
-    .addFrameSystem(createHazardRenderSystem(ctx))
     .addFrameSystem(tpsCameraSystem)
+    // Effects face the camera, so they draw after it moved.
+    .addFrameSystem(vfx.telegraphs)
+    .addFrameSystem(vfx.auras)
+    .addFrameSystem(vfx.meteors)
+    .addFrameSystem(vfx.trails)
+    .addFrameSystem(vfx.particles)
+    .addFrameSystem(vfx.ash)
     .addFrameSystem(createDamageNumbersSystem())
     .addFrameSystem(createBoonsUiSystem())
     .addFrameSystem(createMetaUiSystem())
     .addFrameSystem(createHudSystem())
-    .addFrameSystem(createMenus(ctx, canvas, apply));
+    .addFrameSystem(createMenus(ctx, canvas, apply))
+    .addFrameSystem(vfx.postSettings);
 
   installDebugOverlay(game, ({ gui }) => {
     const p = gui.addFolder('Player');
@@ -175,6 +192,20 @@ export async function createGame(
       ctx.camera.fov = fov;
       ctx.camera.updateProjectionMatrix();
     });
+    const fx = gui.addFolder('VFX');
+    const { bloom, grade } = config.vfx.post;
+    fx.add(bloom, 'strength', 0, 2).name('bloom strength');
+    fx.add(bloom, 'radius', 0, 1).name('bloom radius');
+    fx.add(bloom, 'threshold', 0, 3).name('bloom threshold');
+    fx.add(grade, 'exposure', 0.5, 1.5);
+    fx.add(grade, 'saturation', 0, 2);
+    fx.add(grade, 'contrast', 0.5, 1.5);
+    fx.add(grade, 'vignette', 0, 1);
+    fx.add(config.vfx.glow, 'core', 0, 8).name('core glow');
+    fx.add(config.vfx.glow, 'trail', 0, 8).name('trail glow');
+    fx.add(config.vfx.telegraphs, 'fillAlpha', 0, 1).name('telegraph fill');
+    fx.add(config.vfx.telegraphs, 'minor').name('minor telegraphs');
+    fx.add(config.vfx.ash, 'fall', 0, 1).name('ash fall');
   });
 
   installTestHook(game, {
@@ -216,7 +247,8 @@ export async function createGame(
         suspended: ctx.suspended,
         save: structuredClone(ctx.state.save),
         settings: { sensitivity: config.look.sensitivity, volume: ctx.audio.masterVolume },
-        render: renderQuality(game),
+        render: { ...renderQuality(game), bloom: vfx.post.bloom },
+        vfx: vfx.inspect(),
         hazards: ctx.state.hazards.map((h) => ({ ...h })),
         burnRing: ctx.state.burnRing,
         action: action!.kind,
@@ -321,12 +353,15 @@ export async function createGame(
         grant(player.boons!.held, id);
         player.skill!.element = skillElement(player.boons!.held);
       },
-      /** Adds status stacks to enemy `index`: kind 0 Chill, 1 Weight, 2 Rot. */
+      /** Adds status stacks to enemy `index`: kind 0 Chill, 1 Weight, 2 Rot, 3 freezes it. */
       addStatus: (index, kind, stacks) => {
         const e = [...ctx.world.with('enemy', 'status')][index];
         if (!e) return;
         const s = e.status;
-        if (kind === 0) {
+        if (kind === 3) {
+          s.chill = 0;
+          s.frozen = config.status.chill.freezeSeconds;
+        } else if (kind === 0) {
           s.chill = Math.min(config.status.chill.maxStacks - 1, s.chill + stacks);
           s.chillTime = config.status.chill.duration;
         } else if (kind === 1) {
@@ -344,6 +379,17 @@ export async function createGame(
       },
       suspend: (on = 1) => {
         ctx.suspended = on !== 0;
+      },
+      /** Sets the render quality: 0 Low, 1 Medium, 2 High. */
+      setQuality: (index) => {
+        ctx.state.save.settings.quality = (['low', 'medium', 'high'] as const)[index] ?? 'high';
+        apply();
+      },
+      /** Equips STAFFS[index] for the current run or room. */
+      setStaff: (index) => {
+        const staff = STAFFS[index]?.id ?? 'glint';
+        if (player.loadout) player.loadout.staff = staff;
+        else ctx.world.addComponent(player, 'loadout', { staff, boltBonus: 0, iframeBonus: 0 });
       },
       /** Puts the player next to a hall station: 0 grace, 1 altar, 2 rack. */
       teleportToStation: (index) => {

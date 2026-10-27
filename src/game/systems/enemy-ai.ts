@@ -5,6 +5,7 @@ import { timeFactor } from '../boons/status';
 import { config } from '../config';
 import { spawnEnemy } from '../entities/enemy';
 import type { Entity } from '../components';
+import { ImpactKind } from '../state';
 import type { Ctx, GameSystem } from '../types';
 
 /**
@@ -127,7 +128,7 @@ function changePhase(
     player.locomotion.velocity.x += (dx / d) * config.enemy.phaseShockwave;
     player.locomotion.velocity.z += (dz / d) * config.enemy.phaseShockwave;
   }
-  ctx.state.impacts.push({ x: p.x, y: 0.4, z: p.z, age: 0, kind: 4 });
+  ctx.state.impacts.push({ x: p.x, y: 0.4, z: p.z, age: 0, kind: ImpactKind.Gravity });
   ctx.state.feedback.shake = Math.max(ctx.state.feedback.shake, 0.25);
   ctx.audio.play('slam', { volume: 0.8, rate: 0.7 });
   if (enemy.kind === 'captain') {

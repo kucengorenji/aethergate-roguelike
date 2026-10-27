@@ -123,13 +123,10 @@ export interface Entity extends CoreComponents {
     phase: number;
     phaseTime: number;
     pattern: number;
-    /** Boss telegraph shapes: the charge path and the sweep cone. */
-    shapes?: { line: THREE.Mesh; cone: THREE.Mesh };
     /** Seconds the guard stays broken (knights). */
     guardBroken: number;
     collider: RAPIER.Collider;
-    /** Telegraph glow (eyes, gem) and the ground marker for area attacks. */
+    /** Telegraph glow (eyes, gem); ground decals are drawn from the state (spec 0014). */
     glow: THREE.MeshStandardMaterial;
-    marker: THREE.Mesh;
   };
 }

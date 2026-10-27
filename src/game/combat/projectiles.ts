@@ -4,6 +4,9 @@ export type ProjectileKind = (typeof ProjectileKind)[keyof typeof ProjectileKind
 export const Team = { Player: 0, Enemy: 1 } as const;
 export type Team = (typeof Team)[keyof typeof Team];
 
+/** Cosmetic looks of enemy orbs: the training totem's and a Thorn Caster's. */
+export const OrbLook = { Totem: 0, Thorn: 1 } as const;
+
 /**
  * Fixed-capacity pool of projectiles as struct-of-arrays. Projectiles are too
  * many and too short-lived to be ECS entities: no allocation per shot, one
@@ -22,6 +25,11 @@ export class ProjectilePool {
   readonly life: Float32Array;
   /** Targets a projectile may still pass through before it stops (Lance Staff). */
   readonly pierce: Uint8Array;
+  /**
+   * Cosmetic variant, never read by gameplay: for bolts the staff (index in
+   * `STAFFS`), for orbs an `OrbLook`.
+   */
+  readonly look: Uint8Array;
   private readonly free: number[] = [];
   private live = 0;
 
@@ -36,6 +44,7 @@ export class ProjectilePool {
     this.damage = new Float32Array(capacity);
     this.life = new Float32Array(capacity);
     this.pierce = new Uint8Array(capacity);
+    this.look = new Uint8Array(capacity);
     for (let i = capacity - 1; i >= 0; i--) this.free.push(i);
   }
 
@@ -57,6 +66,7 @@ export class ProjectilePool {
     damage: number;
     life: number;
     pierce?: number;
+    look?: number;
   }): number {
     const i = this.free.pop();
     if (i === undefined) return -1;
@@ -70,6 +80,7 @@ export class ProjectilePool {
     this.damage[i] = p.damage;
     this.life[i] = p.life;
     this.pierce[i] = p.pierce ?? 0;
+    this.look[i] = p.look ?? 0;
     this.live++;
     return i;
   }

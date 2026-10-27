@@ -5,6 +5,8 @@ import { ProjectilePool } from './combat/projectiles';
 import type { RunPlan, Wave } from './run/plan';
 import type { Reward } from './run/rewards';
 import type { God } from './boons/data';
+import { config } from './config';
+import { createVfxState, type VfxState } from './vfx/state';
 
 export type Phase = 'playing' | 'dead';
 /** Full-screen menus that take over input. */
@@ -25,13 +27,45 @@ export interface DamageNumber {
   age: number;
 }
 
+/** What made an impact, which picks its effect. */
+export const ImpactKind = {
+  Bolt: 0,
+  Orb: 1,
+  Comet: 2,
+  /** Pale Step's frost nova. */
+  Nova: 3,
+  /** Crushes, the Collapsing Comet's pull, the gravity well, boss phase shockwaves. */
+  Gravity: 4,
+  /** Knight and Captain shield slams. */
+  Slam: 5,
+  /** Boss meteors and Meteor Step. */
+  Meteor: 6,
+  /** Spore Step's cloud. */
+  Spore: 7,
+} as const;
+
 export interface Impact {
   x: number;
   y: number;
   z: number;
   age: number;
-  /** 0 bolt, 1 orb: picks color and size. */
+  /** An `ImpactKind`. */
   kind: number;
+  /** The projectile's cosmetic look (`ProjectilePool.look`), for bolt and orb impacts. */
+  look?: number;
+  /** Area the impact covers, m, when it has one (slams, meteors, the well). */
+  radius?: number;
+}
+
+/** A hit that landed or was blocked this step, for hit sparks; the VFX system drains it. */
+export interface HitMark {
+  x: number;
+  y: number;
+  z: number;
+  /** Horizontal unit direction the blow traveled (from attacker to target). */
+  dx: number;
+  dz: number;
+  kind: 'enemy' | 'player' | 'block';
 }
 
 export interface GameState {
@@ -94,6 +128,10 @@ export interface GameState {
   elapsed: number;
   projectiles: ProjectilePool;
   impacts: Impact[];
+  /** Hits this step for hit sparks (cosmetic). */
+  hits: HitMark[];
+  /** Effects: particles and their own random stream (spec 0014). */
+  vfx: VfxState;
   damageNumbers: DamageNumber[];
   feedback: {
     /** Fixed steps of hitstop left. */
@@ -114,7 +152,13 @@ export function controlsLocked(state: GameState): boolean {
   return state.phase !== 'playing' || state.choice !== null || state.panel !== null;
 }
 
-export function createState(mode: Mode = 'run', waves: Wave[] = [], startDelay = 2): GameState {
+export function createState(
+  mode: Mode = 'run',
+  waves: Wave[] = [],
+  startDelay = 2,
+  seed = 1,
+): GameState {
+  const projectiles = new ProjectilePool(256);
   return {
     phase: 'playing',
     mode,
@@ -151,8 +195,10 @@ export function createState(mode: Mode = 'run', waves: Wave[] = [], startDelay =
       timer: 0,
     },
     elapsed: 0,
-    projectiles: new ProjectilePool(256),
+    projectiles,
     impacts: [],
+    hits: [],
+    vfx: createVfxState(seed, projectiles.capacity, config.vfx.capacity),
     damageNumbers: [],
     feedback: { hitstop: 0, kick: 0, shake: 0, hurt: 0 },
     stats: { casts: 0, hits: 0 },

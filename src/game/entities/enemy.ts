@@ -18,20 +18,20 @@ export const ENEMY_KINDS: readonly EnemyKind[] = [
 const box = new THREE.BoxGeometry(1, 1, 1);
 const ball = new THREE.IcosahedronGeometry(1, 1);
 const cone = new THREE.ConeGeometry(1, 1, 8);
-const ringGeometry = new THREE.RingGeometry(0.85, 1, 40).rotateX(-Math.PI / 2);
-/** Boss telegraphs: a 1 m long strip ahead of the boss (scaled to the charge) and a sweep cone. */
-const lineGeometry = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2).translate(0, 0, -0.5);
-const coneGeometry = new THREE.CircleGeometry(
-  1,
-  32,
-  Math.PI / 2 - Math.PI / 3,
-  (2 * Math.PI) / 3,
-).rotateX(-Math.PI / 2);
 const darkMetal = new THREE.MeshStandardMaterial({
   color: 0x2c2a28,
   roughness: 0.6,
   metalness: 0.5,
 });
+
+/** An enemy's eye or gem color: green thorn casters, violet for the Starfallen Knight, orange-red otherwise. */
+export function enemyGlowColor(kind: EnemyKind): number {
+  return kind === 'caster'
+    ? config.colors.casterGlow
+    : kind === 'starfallen'
+      ? config.colors.starGlow
+      : config.colors.enemyGlow;
+}
 
 /** Center height of an enemy's capsule above the floor. */
 export function enemyCenterY(kind: EnemyKind): number {
@@ -55,12 +55,7 @@ export function spawnEnemy(ctx: Ctx, kind: EnemyKind, x: number, z: number, rise
   );
 
   const skin = new THREE.MeshStandardMaterial({ color: config.colors[kind], roughness: 0.85 });
-  const glowColor =
-    kind === 'caster'
-      ? config.colors.casterGlow
-      : kind === 'starfallen'
-        ? config.colors.starGlow
-        : config.colors.enemyGlow;
+  const glowColor = enemyGlowColor(kind);
   const glow = new THREE.MeshStandardMaterial({
     color: glowColor,
     emissive: glowColor,
@@ -72,32 +67,6 @@ export function spawnEnemy(ctx: Ctx, kind: EnemyKind, x: number, z: number, rise
   model.position.y = -cy;
   const object3d = new THREE.Group();
   object3d.add(model);
-
-  const marker = new THREE.Mesh(
-    ringGeometry,
-    new THREE.MeshBasicMaterial({
-      color: config.colors.marker,
-      transparent: true,
-      opacity: 0.8,
-      depthWrite: false,
-    }),
-  );
-  marker.visible = false;
-  marker.renderOrder = 1;
-  ctx.scene.add(marker);
-  const markerMaterial = marker.material;
-  const shapes =
-    kind === 'captain' || kind === 'starfallen'
-      ? {
-          line: new THREE.Mesh(lineGeometry, markerMaterial),
-          cone: new THREE.Mesh(coneGeometry, markerMaterial),
-        }
-      : undefined;
-  for (const shape of shapes ? [shapes.line, shapes.cone] : []) {
-    shape.visible = false;
-    shape.renderOrder = 1;
-    ctx.scene.add(shape);
-  }
 
   const p = ctx.world.with('player', 'body').first?.body.translation();
   const facing = p ? Math.atan2(-(p.x - x), -(p.z - z)) : 0;
@@ -136,26 +105,15 @@ export function spawnEnemy(ctx: Ctx, kind: EnemyKind, x: number, z: number, rise
       phase: 1,
       pattern: 0,
       phaseTime: 0,
-      shapes,
       collider,
       glow,
-      marker,
     },
   });
 }
 
-/** Removes an enemy's ground marker along with the entity. */
+/** Removes an enemy and frees its own materials. */
 export function despawnEnemy(ctx: Ctx, entity: Entity): void {
-  if (entity.enemy) {
-    ctx.scene.remove(entity.enemy.marker);
-    for (const shape of entity.enemy.shapes
-      ? [entity.enemy.shapes.line, entity.enemy.shapes.cone]
-      : []) {
-      ctx.scene.remove(shape);
-    }
-    (entity.enemy.marker.material as THREE.Material).dispose();
-    entity.enemy.glow.dispose();
-  }
+  entity.enemy?.glow.dispose();
   entity.flash?.materials.forEach((m) => {
     m.dispose();
   });
