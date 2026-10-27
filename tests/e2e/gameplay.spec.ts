@@ -115,9 +115,11 @@ test('prompt shows until the pointer is locked', async ({ page }) => {
   await act(page, 'pointerLock', 1);
   await advance(page, 1);
   await expect(prompt).toBeHidden();
+  // Losing the lock during play pauses (spec 0012); the pause menu replaces the prompt.
   await act(page, 'pointerLock', 0);
   await advance(page, 1);
-  await expect(prompt).toBeVisible();
+  await expect(page.getByRole('dialog', { name: 'Paused' })).toBeVisible();
+  await expect(prompt).toBeHidden();
 });
 
 function distanceToHead(s: {
