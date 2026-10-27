@@ -1,6 +1,6 @@
 # 0009: Asset pipeline spike (rigged player)
 
-Status: approved
+Status: done
 Owner: Mikael (built by a parallel agent in a Herdr pane)
 
 ## Problem
@@ -18,13 +18,13 @@ Before M6 we need proof that a rigged, animated low-poly character can go from a
 
 ## Acceptance criteria
 
-- [ ] One command regenerates the character from source (for example `pnpm assets:player`), headless, deterministic, documented in `assets-src/README.md`.
-- [ ] Budget: at most 4,000 triangles, at most 40 bones, `.glb` at most 600 KB after `pnpm assets`.
-- [ ] Idle, run, dodge, aim, bash and drink all play in game and look right in screenshots from the shoulder camera (no broken skinning, no foot sliding worse than the mannequin, staff stays in the hand).
-- [ ] The source, license (CC0) and download location of the animation library are recorded in an ADR (`docs/decisions/0003-asset-pipeline.md`).
-- [ ] Existing tests keep passing; visual baselines change only because of the new character, and each changed image was reviewed.
-- [ ] Simulation step stays within the CPU budget; bundle and asset size stay within `perf-budget.json`.
-- [ ] `pnpm verify` passes.
+- [x] One command regenerates the character from source (for example `pnpm assets:player`), headless, deterministic, documented in `assets-src/README.md`.
+- [x] Budget: at most 4,000 triangles, at most 40 bones, `.glb` at most 600 KB after `pnpm assets`.
+- [x] Idle, run, dodge, aim, bash and drink all play in game and look right in screenshots from the shoulder camera (no broken skinning, no foot sliding worse than the mannequin, staff stays in the hand).
+- [x] The source, license (CC0) and download location of the animation library are recorded in an ADR (`docs/decisions/0003-asset-pipeline.md`).
+- [x] Existing tests keep passing; visual baselines change only because of the new character, and each changed image was reviewed.
+- [x] Simulation step stays within the CPU budget; bundle and asset size stay within `perf-budget.json`.
+- [x] `pnpm verify` passes.
 
 ## Out of scope
 
