@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { qualityProfile } from './quality';
+import { effectsProfile, qualityProfile } from './quality';
 
 describe('qualityProfile', () => {
   it('renders Low at 75% without shadows', () => {
@@ -20,5 +20,21 @@ describe('qualityProfile', () => {
   it('never goes below full resolution on a zoomed-out page except on Low', () => {
     expect(qualityProfile('medium', 0.8).pixelRatio).toBe(1);
     expect(qualityProfile('high', 0.8).pixelRatio).toBe(1);
+  });
+});
+
+describe('effectsProfile', () => {
+  it('turns bloom off on Low only', () => {
+    expect(effectsProfile('low').bloom).toBe(false);
+    expect(effectsProfile('medium').bloom).toBe(true);
+    expect(effectsProfile('high').bloom).toBe(true);
+  });
+
+  it('scales particles and ash up with quality', () => {
+    const [low, medium, high] = (['low', 'medium', 'high'] as const).map(effectsProfile);
+    expect(low!.particles).toBeLessThan(medium!.particles);
+    expect(medium!.particles).toBeLessThan(high!.particles);
+    expect(low!.ash).toBeLessThan(medium!.ash);
+    expect(medium!.ash).toBeLessThan(high!.ash);
   });
 });
