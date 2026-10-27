@@ -19,6 +19,8 @@ import { actionsSystem } from './systems/actions';
 import { castSystem, focusSystem } from './systems/cast';
 import { skillSystem } from './systems/skill';
 import { statusSystem } from './systems/status';
+import { hazardsSystem } from './systems/hazards';
+import { createHazardRenderSystem } from './systems/hazard-render';
 import { boonChoiceSystem } from './systems/boon-choice';
 import { createBoonsUiSystem } from './ui/boons';
 import { BOONS, GOD_ORDER, grant } from './boons/data';
@@ -103,6 +105,7 @@ export async function createGame(
     .addFixedSystem(enemyAiSystem)
     .addFixedSystem(createEnemyMotionSystem(enemyController))
     .addFixedSystem(enemyAttackSystem)
+    .addFixedSystem(hazardsSystem)
     .addFixedSystem(projectilesSystem)
     .addFixedSystem(dummySystem)
     .addFixedSystem(enemyDeathSystem)
@@ -115,6 +118,7 @@ export async function createGame(
     .addFrameSystem(playerFacingSystem)
     .addFrameSystem(enemyPoseSystem)
     .addFrameSystem(roomPropsSystem)
+    .addFrameSystem(createHazardRenderSystem(ctx))
     .addFrameSystem(tpsCameraSystem)
     .addFrameSystem(createDamageNumbersSystem())
     .addFrameSystem(createBoonsUiSystem())
@@ -177,6 +181,8 @@ export async function createGame(
         skillElement: player.skill!.element,
         boons: player.boons!.held,
         choice: ctx.state.choice,
+        hazards: ctx.state.hazards.map((h) => ({ ...h })),
+        burnRing: ctx.state.burnRing,
         action: action!.kind,
         dummy:
           dummy && d
@@ -217,6 +223,8 @@ export async function createGame(
               health: health.current,
               facing: enemy.facing,
               status: status ? { ...status } : null,
+              move: enemy.move,
+              phase: enemy.phase,
             };
           },
         ),
@@ -291,6 +299,15 @@ export async function createGame(
         } else {
           addRot(s, stacks, player.boons!.held.passive === 'fester');
         }
+      },
+      /** Sets a boss's pattern counter, which picks its next move. */
+      setEnemyPattern: (index, pattern) => {
+        const e = [...ctx.world.with('enemy')][index];
+        if (e) e.enemy.pattern = pattern;
+      },
+      setEnemyHealth: (index, value) => {
+        const e = [...ctx.world.with('enemy', 'health')][index];
+        if (e) e.health.current = value;
       },
       /** Opens a blessing choice from GOD_ORDER[god]. */
       offerBoons: (god) => {

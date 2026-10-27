@@ -342,6 +342,56 @@ body {
   opacity: 0.65;
 }
 
+.boss-bar {
+  position: fixed;
+  top: 58px;
+  left: 50%;
+  width: min(560px, 70vw);
+  transform: translateX(-50%);
+  display: grid;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.boss-bar[hidden] {
+  display: none;
+}
+
+.boss-name {
+  margin: 0;
+  text-align: center;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 18px;
+  letter-spacing: 0.05em;
+  color: #f1e3c4;
+  text-shadow: 0 1px 6px rgb(0 0 0 / 70%);
+}
+
+/* --hp is the remaining fraction; --notches draws the phase thresholds. */
+.boss-track {
+  position: relative;
+  height: 10px;
+  border-radius: 3px;
+  background: rgb(20 16 12 / 78%);
+  box-shadow: inset 0 0 0 1px rgb(241 233 218 / 22%);
+  overflow: hidden;
+}
+
+.boss-track i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--hp, 1) * 100%);
+  background: linear-gradient(#b48cff, #6a4ab0);
+  transition: width 120ms ease-out;
+}
+
+.boss-track::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--notches, none);
+}
+
 .run-stats {
   position: fixed;
   top: 16px;
@@ -389,7 +439,8 @@ body {
 
 .toast {
   position: fixed;
-  top: 64px;
+  /* Below the room label and the boss bar, which share the top center. */
+  top: 112px;
   left: 50%;
   transform: translateX(-50%);
   padding: 8px 16px;

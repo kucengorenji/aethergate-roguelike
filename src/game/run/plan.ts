@@ -64,7 +64,14 @@ export function planRun(seed: number): RunPlan {
   return { seed, rooms, offers };
 }
 
-const COST: Record<EnemyKind, number> = { soldier: 1, hound: 1, caster: 1.5, knight: 3 };
+const COST: Record<EnemyKind, number> = {
+  soldier: 1,
+  hound: 1,
+  caster: 1.5,
+  knight: 3,
+  captain: 10,
+  starfallen: 30,
+};
 
 /** Fills each wave's budget with random enemies; knights only from depth 3, casters capped. */
 function combatWaves(rng: Rng, depth: number): Wave[] {

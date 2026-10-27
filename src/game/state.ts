@@ -54,6 +54,14 @@ export interface GameState {
   choice: { god: God; options: string[] } | null;
   /** Lightning arcs being drawn, with their age in seconds. */
   arcs: { x1: number; y1: number; z1: number; x2: number; y2: number; z2: number; age: number }[];
+  /** Boss hazards: meteor markers counting down to impact. */
+  hazards: { x: number; z: number; radius: number; time: number; damage: number }[];
+  /** Phase 3 burning ring: the safe radius around the arena center, or null. */
+  burnRing: number | null;
+  /** Seconds until the burning ring hurts again. */
+  burnTick: number;
+  /** Velocity pulling the player this step (gravity well), consumed by locomotion. */
+  pull: { x: number; z: number };
   /** Comet bursts waiting for their pull to finish (Collapsing Comet). */
   pendingBursts: { x: number; y: number; z: number; time: number }[];
   /** A short message on screen (rewards), with its age in seconds. */
@@ -114,6 +122,10 @@ export function createState(mode: Mode = 'run', waves: Wave[] = [], startDelay =
     choice: null,
     arcs: [],
     pendingBursts: [],
+    hazards: [],
+    burnRing: null,
+    burnTick: 0,
+    pull: { x: 0, z: 0 },
     encounter: {
       status: mode === 'encounter' ? 'waiting' : 'off',
       waves,

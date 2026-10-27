@@ -36,7 +36,11 @@ export interface Snapshot {
     health: number;
     facing: number;
     status: { chill: number; frozen: number; weight: number; rot: number } | null;
+    move: string | null;
+    phase: number;
   }[];
+  hazards: { x: number; z: number; radius: number; time: number; damage: number }[];
+  burnRing: number | null;
   skillElement: string | null;
   boons: { primary?: string; skill?: string; dodge?: string; passive?: string; duos: string[] };
   choice: { god: string; options: string[] } | null;
@@ -128,7 +132,14 @@ export const ENCOUNTER = 'test&seed=1&paused&mode=encounter';
 export const RUN = (seed = 7) => `test&seed=${seed}&paused&mode=run`;
 export const REWARD = { boon: 0, shards: 1, heal: 2, flask: 3 } as const;
 export const SANDBOX = 'test&seed=1&paused&mode=sandbox';
-export const KIND = { soldier: 0, caster: 1, knight: 2, hound: 3 } as const;
+export const KIND = {
+  soldier: 0,
+  caster: 1,
+  knight: 2,
+  hound: 3,
+  captain: 4,
+  starfallen: 5,
+} as const;
 
 /**
  * Advances one step at a time inside the page until `done` holds, then renders

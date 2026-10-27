@@ -49,8 +49,14 @@ export const locomotionSystem: GameSystem = ({ world, input, dt, state }) => {
     // floor, and any downward component makes Rapier skip autostep onto ledges.
     v.y = locomotion.grounded ? 0 : Math.max(-maxFallSpeed, v.y - gravity * dt);
 
+    // A boss's gravity well drags the player. It only moves this step and is not
+    // stored in the velocity, or it would build up step after step.
     const { controller, collider } = characterController;
-    controller.computeColliderMovement(collider, { x: v.x * dt, y: v.y * dt, z: v.z * dt });
+    controller.computeColliderMovement(collider, {
+      x: (v.x + state.pull.x) * dt,
+      y: v.y * dt,
+      z: (v.z + state.pull.z) * dt,
+    });
     const m = controller.computedMovement();
     const p = body.translation();
     body.setNextKinematicTranslation({ x: p.x + m.x, y: p.y + m.y, z: p.z + m.z });

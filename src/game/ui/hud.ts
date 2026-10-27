@@ -27,6 +27,9 @@ export function createHudSystem(): GameSystem {
   const doorPrompt = $('door-prompt');
   const complete = $('complete');
   const fade = $('fade');
+  const bossBar = $('boss-bar');
+  const bossName = bossBar.querySelector('.boss-name')!;
+  const bossTrack = bossBar.querySelector<HTMLElement>('.boss-track')!;
   const last = new Map<string, string>();
   const set = (key: string, value: string, apply: () => void) => {
     if (last.get(key) === value) return;
@@ -105,6 +108,28 @@ export function createHudSystem(): GameSystem {
         : 0;
     set('fade', fadeLevel.toFixed(2), () => {
       fade.style.opacity = fadeLevel.toFixed(2);
+    });
+    const boss = [...world.with('enemy', 'health')].find(
+      (e) =>
+        (e.enemy.kind === 'captain' || e.enemy.kind === 'starfallen') && e.enemy.state !== 'dying',
+    );
+    const bossKey = boss ? `${boss.enemy.kind}|${boss.health.current.toFixed(0)}` : '';
+    set('boss', bossKey, () => {
+      bossBar.hidden = !boss;
+      if (!boss) return;
+      const starfallen = boss.enemy.kind === 'starfallen';
+      bossName.textContent = starfallen ? 'The Starfallen Knight' : 'The Ward Captain';
+      bossTrack.style.setProperty('--hp', String(boss.health.current / boss.health.max));
+      const notches = starfallen ? [1 / 3, 2 / 3] : [0.5];
+      bossTrack.style.setProperty(
+        '--notches',
+        `linear-gradient(90deg, ${notches
+          .map(
+            (n) =>
+              `transparent calc(${n * 100}% - 1px), rgb(0 0 0 / 70%) calc(${n * 100}% - 1px) calc(${n * 100}% + 1px), transparent calc(${n * 100}% + 1px)`,
+          )
+          .join(', ')})`,
+      );
     });
     set('hurt', state.feedback.hurt.toFixed(2), () => {
       hurt.style.opacity = state.feedback.hurt.toFixed(2);

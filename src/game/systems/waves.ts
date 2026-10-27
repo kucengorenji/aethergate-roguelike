@@ -1,3 +1,4 @@
+import { isBoss } from '../ai/bosses';
 import type { EnemyKind } from '../components';
 import type { Wave } from '../run/plan';
 import { config } from '../config';
@@ -48,7 +49,8 @@ export function startWave(ctx: Ctx, index: number): void {
   for (const kind of ENEMY_KINDS) for (let i = 0; i < (wave[kind] ?? 0); i++) kinds.push(kind);
   const points = spawnPoints(ctx, kinds.length);
   kinds.forEach((kind, i) => {
-    const pt = points[i % points.length]!;
+    // Bosses take the layout's first spawn point: the far end, facing the entrance.
+    const pt = isBoss(kind) ? ctx.state.layout.enemySpawns[0]! : points[i % points.length]!;
     // Several enemies on one point get spread around it.
     const ring = Math.floor(i / points.length);
     spawnEnemy(ctx, kind, pt.x + ring * 1.2, pt.z + ring * 0.8);

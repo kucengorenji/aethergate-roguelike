@@ -1,3 +1,4 @@
+import { isBoss } from '../ai/bosses';
 import { applyDamage } from '../combat/damage';
 import type { Entity } from '../components';
 import { config } from '../config';
@@ -124,7 +125,8 @@ export function onBashHit(ctx: Ctx, target: Entity): void {
 
 export function chill(ctx: Ctx, target: Entity, stacks: number): void {
   if (!target.status || (target.health?.current ?? 0) <= 0) return;
-  if (addChill(target.status, stacks)) ctx.audio.play('freeze', { volume: 0.5 });
+  const canFreeze = !target.enemy || !isBoss(target.enemy.kind);
+  if (addChill(target.status, stacks, canFreeze)) ctx.audio.play('freeze', { volume: 0.5 });
 }
 
 export function weigh(ctx: Ctx, target: Entity, stacks: number): void {

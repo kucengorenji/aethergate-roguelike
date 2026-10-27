@@ -24,11 +24,14 @@ export const noStatus = (): Status => ({
   rotTick: 0,
 });
 
-/** Adds Chill; the stack that reaches the cap freezes and clears the stacks. Returns true on freeze. */
-export function addChill(s: Status, stacks: number): boolean {
+/**
+ * Adds Chill; the stack that reaches the cap freezes and clears the stacks.
+ * Returns true on freeze. Targets that cannot freeze (bosses) stay one below the cap.
+ */
+export function addChill(s: Status, stacks: number, canFreeze = true): boolean {
   if (s.frozen > 0) return false;
   const { maxStacks, duration, freezeSeconds } = config.status.chill;
-  s.chill = Math.min(maxStacks, s.chill + stacks);
+  s.chill = Math.min(canFreeze ? maxStacks : maxStacks - 1, s.chill + stacks);
   s.chillTime = duration;
   if (s.chill < maxStacks) return false;
   s.chill = 0;

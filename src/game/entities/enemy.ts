@@ -6,12 +6,27 @@ import { noStatus } from '../boons/status';
 import { config } from '../config';
 import type { Ctx } from '../types';
 
-export const ENEMY_KINDS: readonly EnemyKind[] = ['soldier', 'caster', 'knight', 'hound'];
+export const ENEMY_KINDS: readonly EnemyKind[] = [
+  'soldier',
+  'caster',
+  'knight',
+  'hound',
+  'captain',
+  'starfallen',
+];
 
 const box = new THREE.BoxGeometry(1, 1, 1);
 const ball = new THREE.IcosahedronGeometry(1, 1);
 const cone = new THREE.ConeGeometry(1, 1, 8);
 const ringGeometry = new THREE.RingGeometry(0.85, 1, 40).rotateX(-Math.PI / 2);
+/** Boss telegraphs: a 1 m long strip ahead of the boss (scaled to the charge) and a sweep cone. */
+const lineGeometry = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2).translate(0, 0, -0.5);
+const coneGeometry = new THREE.CircleGeometry(
+  1,
+  32,
+  Math.PI / 2 - Math.PI / 3,
+  (2 * Math.PI) / 3,
+).rotateX(-Math.PI / 2);
 const darkMetal = new THREE.MeshStandardMaterial({
   color: 0x2c2a28,
   roughness: 0.6,
@@ -40,7 +55,12 @@ export function spawnEnemy(ctx: Ctx, kind: EnemyKind, x: number, z: number, rise
   );
 
   const skin = new THREE.MeshStandardMaterial({ color: config.colors[kind], roughness: 0.85 });
-  const glowColor = kind === 'caster' ? config.colors.casterGlow : config.colors.enemyGlow;
+  const glowColor =
+    kind === 'caster'
+      ? config.colors.casterGlow
+      : kind === 'starfallen'
+        ? config.colors.starGlow
+        : config.colors.enemyGlow;
   const glow = new THREE.MeshStandardMaterial({
     color: glowColor,
     emissive: glowColor,
@@ -65,6 +85,19 @@ export function spawnEnemy(ctx: Ctx, kind: EnemyKind, x: number, z: number, rise
   marker.visible = false;
   marker.renderOrder = 1;
   ctx.scene.add(marker);
+  const markerMaterial = marker.material;
+  const shapes =
+    kind === 'captain' || kind === 'starfallen'
+      ? {
+          line: new THREE.Mesh(lineGeometry, markerMaterial),
+          cone: new THREE.Mesh(coneGeometry, markerMaterial),
+        }
+      : undefined;
+  for (const shape of shapes ? [shapes.line, shapes.cone] : []) {
+    shape.visible = false;
+    shape.renderOrder = 1;
+    ctx.scene.add(shape);
+  }
 
   const p = ctx.world.with('player', 'body').first?.body.translation();
   const facing = p ? Math.atan2(-(p.x - x), -(p.z - z)) : 0;
@@ -99,6 +132,11 @@ export function spawnEnemy(ctx: Ctx, kind: EnemyKind, x: number, z: number, rise
       stuck: 0,
       detour: 0,
       guardBroken: 0,
+      move: null,
+      phase: 1,
+      pattern: 0,
+      phaseTime: 0,
+      shapes,
       collider,
       glow,
       marker,
@@ -110,6 +148,11 @@ export function spawnEnemy(ctx: Ctx, kind: EnemyKind, x: number, z: number, rise
 export function despawnEnemy(ctx: Ctx, entity: Entity): void {
   if (entity.enemy) {
     ctx.scene.remove(entity.enemy.marker);
+    for (const shape of entity.enemy.shapes
+      ? [entity.enemy.shapes.line, entity.enemy.shapes.cone]
+      : []) {
+      ctx.scene.remove(shape);
+    }
     (entity.enemy.marker.material as THREE.Material).dispose();
     entity.enemy.glow.dispose();
   }
@@ -169,6 +212,31 @@ function buildFigure(
       part(m, box, glow, [0, 1.82, -0.18], [0.22, 0.04, 0.02]);
       // Tower shield in front.
       part(m, box, darkMetal, [-0.1, 1.0, -0.45], [0.95, 1.3, 0.1]);
+      break;
+    case 'captain':
+      // A bigger, gilded Ward Knight with a crest.
+      part(m, box, skin, [0, 1.45, 0], [1.1, 1.15, 0.65]);
+      part(m, box, skin, [-0.28, 0.5, 0], [0.34, 1.0, 0.36]);
+      part(m, box, skin, [0.28, 0.5, 0], [0.34, 1.0, 0.36]);
+      part(m, box, skin, [0, 2.25, 0], [0.46, 0.46, 0.46]);
+      part(m, cone, glow, [0, 2.65, 0], [0.18, 0.4, 0.18]);
+      part(m, box, glow, [0, 2.28, -0.24], [0.3, 0.05, 0.02]);
+      part(m, box, darkMetal, [-0.1, 1.3, -0.6], [1.3, 1.7, 0.14]);
+      part(m, box, glow, [-0.1, 1.3, -0.68], [0.2, 0.9, 0.02]);
+      break;
+    case 'starfallen':
+      // A towering knight with a starry cuirass, long blade and pauldrons.
+      part(m, box, skin, [0, 2.0, 0], [1.2, 1.4, 0.7]);
+      part(m, box, skin, [-0.35, 0.75, 0], [0.4, 1.5, 0.42]);
+      part(m, box, skin, [0.35, 0.75, 0], [0.4, 1.5, 0.42]);
+      part(m, box, skin, [-0.8, 2.55, 0], [0.55, 0.35, 0.6]);
+      part(m, box, skin, [0.8, 2.55, 0], [0.55, 0.35, 0.6]);
+      part(m, box, skin, [0, 3.0, 0], [0.5, 0.55, 0.5]);
+      part(m, box, glow, [0, 3.02, -0.26], [0.34, 0.06, 0.02]);
+      for (let i = 0; i < 5; i++)
+        part(m, ball, glow, [-0.4 + i * 0.2, 2.1 + (i % 2) * 0.3, -0.36], [0.05, 0.05, 0.05]);
+      part(m, box, darkMetal, [0.95, 1.6, -0.9], [0.1, 0.12, 2.4]);
+      part(m, cone, glow, [0, 3.45, 0], [0.12, 0.5, 0.12]);
       break;
     case 'hound':
       part(m, box, skin, [0, 0.55, 0.05], [0.38, 0.34, 0.95]);

@@ -44,7 +44,14 @@ export function createEnemyMotionSystem(
       }
       if (enemy.state === 'attack') {
         const k = config.enemies[enemy.kind];
-        const lunge = 'lunge' in k ? k.lunge : 'leapSpeed' in k ? k.leapSpeed : 0;
+        const lunge =
+          enemy.move === 'charge'
+            ? config.enemies.captain.chargeSpeed
+            : 'lunge' in k
+              ? k.lunge
+              : 'leapSpeed' in k
+                ? k.leapSpeed
+                : 0;
         vx = enemy.aimX * lunge * timeFactor(status);
         vz = enemy.aimZ * lunge * timeFactor(status);
       }

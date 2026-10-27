@@ -81,6 +81,8 @@ export function enterRoom(ctx: Ctx, index: number, reward: Reward | null): void 
   const layout = ARENAS[room.layout]!;
   despawnRoom(ctx);
   state.projectiles.clear();
+  state.hazards.length = 0;
+  state.burnRing = null;
   state.impacts.length = 0;
   state.damageNumbers.length = 0;
   state.layout = layout;

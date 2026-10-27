@@ -7,6 +7,8 @@ See `docs/workflows/progress.md`.
 
 ## 2026-10-27
 
+- M4: Spec 0008 done: the Ward Captain (shield, slam, telegraphed charge, phase 2 summons) and the Starfallen Knight (sweep, gravity well, meteors, closing burning ring, three phases), boss bar, control resistance. Verify green, 133 unit and 87 E2E tests. All M4 tasks built; the exit check waits for a playtest.
+- M4: Fixed: the gravity well's pull accumulated in the player's velocity every step; the toast covered the boss bar.
 - M4: Spec 0009 merged: rigged low-poly sorcerer from a headless Blender script with Quaternius UAL (CC0, the author's OpenGameArt upload of the same pack, hash pinned), `pnpm assets:player`, 1,536 tris, 23 bones, 146 KB, deterministic; built by a second agent in a Herdr pane and worktree.
 - M4: Merge re-recorded all 14 visual baselines from scratch (new HUD plus new character), reviewed by eye; verify green with 127 unit and 78 E2E tests. Risk: total bundle at 1,489 of 1,600 KB.
 - --: Parallel checkouts now pick their own E2E port (`E2E_PORT`), found by the spike agent: both checkouts were sharing port 4173.

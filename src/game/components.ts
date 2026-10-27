@@ -6,7 +6,8 @@ import type { Status } from './boons/status';
 import type { Offer, Reward } from './run/rewards';
 
 export type ActionKind = 'none' | 'dodge' | 'bash' | 'drink';
-export type EnemyKind = 'soldier' | 'caster' | 'knight' | 'hound';
+export type EnemyKind = 'soldier' | 'caster' | 'knight' | 'hound' | 'captain' | 'starfallen';
+export type BossMove = 'slam' | 'charge' | 'sweep' | 'well' | 'meteors';
 /** Demigod elements that boons (spec 0007) add to attacks. */
 export type Element = 'frost' | 'gravity' | 'rot' | 'storm';
 export type EnemyState = 'rising' | 'chase' | 'windup' | 'attack' | 'recover' | 'stagger' | 'dying';
@@ -112,6 +113,14 @@ export interface Entity extends CoreComponents {
     /** Seconds spent blocked by cover, and seconds left of walking around it. */
     stuck: number;
     detour: number;
+    /** The attack chosen when the wind-up started (bosses). */
+    move: BossMove | null;
+    /** Boss phase, 1 to 3, seconds in it, and a counter that cycles attack patterns. */
+    phase: number;
+    phaseTime: number;
+    pattern: number;
+    /** Boss telegraph shapes: the charge path and the sweep cone. */
+    shapes?: { line: THREE.Mesh; cone: THREE.Mesh };
     /** Seconds the guard stays broken (knights). */
     guardBroken: number;
     collider: RAPIER.Collider;

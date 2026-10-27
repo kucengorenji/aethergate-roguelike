@@ -129,6 +129,55 @@ export const config = {
       guardArcDegrees: 120,
       guardBreak: 1.6,
     },
+    captain: {
+      health: 450,
+      radius: 0.6,
+      halfHeight: 0.8,
+      speed: 2.6,
+      reach: 2.8,
+      windup: 0.8,
+      attack: 0.2,
+      recover: 0.8,
+      damage: 24,
+      slamDistance: 1.8,
+      slamRadius: 2.6,
+      chargeWindup: 0.9,
+      chargeTime: 0.75,
+      chargeSpeed: 16,
+      chargeDamage: 20,
+      /** Charges only from at least this far away. */
+      chargeFrom: 5.5,
+      phase2Windup: 0.75,
+    },
+    starfallen: {
+      health: 1400,
+      radius: 0.75,
+      halfHeight: 1.1,
+      speed: 3,
+      reach: 3.4,
+      windup: 0.7,
+      attack: 0.2,
+      recover: 0.7,
+      damage: 26,
+      sweepRadius: 3.8,
+      sweepArcDegrees: 120,
+      wellWindup: 0.6,
+      wellTime: 1.2,
+      wellRadius: 4,
+      wellPull: 4.5,
+      wellDamage: 22,
+      meteorWindup: 0.6,
+      meteors: 6,
+      meteorRadius: 1.8,
+      meteorDelay: 1.2,
+      meteorDamage: 18,
+      phase3Windup: 0.8,
+      ringStart: 22,
+      ringEnd: 9,
+      ringSeconds: 25,
+      ringTick: 0.5,
+      ringDamage: 6,
+    },
     hound: {
       health: 25,
       radius: 0.3,
@@ -155,6 +204,9 @@ export const config = {
     separation: 0.5,
     /** Radians per second enemies turn toward their target. */
     turnRate: 8,
+    /** Phase-change stagger for bosses, and the shockwave that pushes the player off. */
+    phaseStagger: 1,
+    phaseShockwave: 9,
   },
   run: {
     /** Seconds between the fade-in and the first wave in later rooms. */
@@ -167,14 +219,12 @@ export const config = {
     /** Fraction of max health a Heal restores. */
     heal: 0.3,
     /** Placeholders until spec 0008 brings the real mini-boss and boss. */
-    eliteWaves: [
-      { knight: 1, soldier: 3 },
-      { knight: 2, caster: 2 },
-    ] as Partial<Record<'soldier' | 'caster' | 'knight' | 'hound', number>>[],
-    bossWaves: [
-      { knight: 2, soldier: 4, caster: 2, hound: 2 },
-      { knight: 3, hound: 3, caster: 2 },
-    ] as Partial<Record<'soldier' | 'caster' | 'knight' | 'hound', number>>[],
+    eliteWaves: [{ captain: 1, soldier: 2 }] as Partial<
+      Record<'soldier' | 'caster' | 'knight' | 'hound' | 'captain' | 'starfallen', number>
+    >[],
+    bossWaves: [{ starfallen: 1 }] as Partial<
+      Record<'soldier' | 'caster' | 'knight' | 'hound' | 'captain' | 'starfallen', number>
+    >[],
     pickupRadius: 1.3,
     doorRadius: 2.4,
   },
@@ -246,6 +296,9 @@ export const config = {
     soldier: 0x5d5148,
     caster: 0x3f4a3a,
     knight: 0x6f6a63,
+    captain: 0x8a7a55,
+    starfallen: 0x3b3550,
+    starGlow: 0xc9a2ff,
     hound: 0x4a3b33,
     enemyGlow: 0xff7a3d,
     casterGlow: 0x9be05a,

@@ -48,6 +48,8 @@ export function restartEncounter(ctx: Ctx): void {
   state.choice = null;
   state.arcs.length = 0;
   state.pendingBursts.length = 0;
+  state.hazards.length = 0;
+  state.burnRing = null;
   state.phase = 'playing';
   state.elapsed = 0;
   ctx.timeScale = 1;

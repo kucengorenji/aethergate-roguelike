@@ -1,6 +1,7 @@
 import type { Entity } from '../components';
 import { config } from '../config';
 import type { Ctx } from '../types';
+import { isBoss } from '../ai/bosses';
 import { inFrontArc } from './guard';
 
 export interface HitOptions {
@@ -39,7 +40,7 @@ export function applyDamage(
   ) {
     if (staggers) {
       enemy.guardBroken = config.enemies.knight.guardBreak;
-      stagger(target, config.enemies.knight.guardBreak);
+      stagger(target, config.enemies.knight.guardBreak, true);
       ctx.audio.play('guardbreak', { volume: 0.7 });
     } else {
       ctx.audio.play('block', { volume: 0.5, rate: ctx.rng.range(0.9, 1.1) });
@@ -88,16 +89,19 @@ export function applyDamage(
   return true;
 }
 
-/** Knights hold their shield up unless the guard is broken or they are mid-swing. */
+/** Knights and the Captain hold their shield up unless the guard is broken or they are mid-swing. */
 export function guardUp(target: Entity): boolean {
   const e = target.enemy;
-  if (!e || e.kind !== 'knight' || e.guardBroken > 0) return false;
+  if (!e || (e.kind !== 'knight' && e.kind !== 'captain') || e.guardBroken > 0) return false;
   return e.state === 'chase' || e.state === 'windup' || e.state === 'rising';
 }
 
-function stagger(target: Entity, seconds: number): void {
+function stagger(target: Entity, seconds: number, guardBreak = false): void {
   const e = target.enemy!;
   if (e.state === 'dying' || e.state === 'rising') return;
+  // Bosses shrug off staggers, except a broken guard.
+  if (isBoss(e.kind) && !guardBreak) return;
+  e.move = null;
   e.state = 'stagger';
   // Stagger lasts config.enemy.staggerSeconds; start later for a longer one.
   e.time = config.enemy.staggerSeconds - seconds;

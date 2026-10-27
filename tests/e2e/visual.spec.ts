@@ -158,3 +158,31 @@ test('drinking the flask', async ({ page }) => {
   await advance(page, 25);
   await expect(page).toHaveScreenshot('drinking.png');
 });
+
+test('the Captain winding up a charge', async ({ page }) => {
+  await openGame(page, SANDBOX);
+  await act(page, 'spawnEnemy', KIND.captain, 0, 3);
+  await advanceUntil(
+    page,
+    (s) => s.enemies[0]!.move === 'charge' && s.enemies[0]!.state === 'windup',
+    60,
+  );
+  await advance(page, 30);
+  await expect(page).toHaveScreenshot('captain-charge.png');
+});
+
+test('the Starfallen Knight calling meteors', async ({ page }) => {
+  await openGame(page, SANDBOX);
+  await act(page, 'spawnEnemy', KIND.starfallen, 0, 4);
+  await act(page, 'setEnemyHealth', 0, 900);
+  await advanceUntil(
+    page,
+    (s) => s.enemies[0]!.phase === 2 && s.enemies[0]!.state === 'chase',
+    120,
+  );
+  await act(page, 'setEnemyPattern', 0, 1);
+  await advanceUntil(page, (s) => s.hazards.length > 0, 120);
+  await act(page, 'freezeEnemies', 1);
+  await advance(page, 40);
+  await expect(page).toHaveScreenshot('boss-meteors.png');
+});

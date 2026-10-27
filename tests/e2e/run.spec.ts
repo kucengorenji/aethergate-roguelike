@@ -106,6 +106,11 @@ test('a seeded run reaches the Aethergate', async ({ page }) => {
   for (let room = 0; room < 8; room++) {
     const s = await inspect(page);
     visited.push(s.layout);
+    if (room === 7) {
+      // The last room holds the real boss, not a placeholder wave.
+      await advanceUntil(page, (x) => x.enemies.length > 0, 300);
+      expect((await inspect(page)).enemies.map((e) => e.kind)).toEqual(['starfallen']);
+    }
     await clearRoom(page);
     await takeRewardAndEnter(page);
   }

@@ -91,6 +91,11 @@ A run is pure data from the seed (`src/game/run/plan.ts`): 8 rooms with layouts 
 The environment (sky, lights, fog) is built once; each room's geometry, doors and reward token are entities tagged `room`, and `despawnRoom` removes exactly those, including their static bodies.
 `systems/run.ts` is the room flow (fighting, reward, choosing, transition, complete) on top of the wave encounter.
 
+## Bosses and hazards
+
+Bosses are enemy kinds (`captain`, `starfallen`) with a pure pattern brain (`src/game/ai/bosses.ts`): the move per phase and pattern, wind-ups per phase, and the closing ring's radius.
+The AI system handles phase changes; the attack system resolves each move; timed area hazards (meteors, the burning ring) live in `state.hazards` and `state.burnRing`, ticked by `systems/hazards.ts` and drawn by `systems/hazard-render.ts`.
+
 ## Modes
 
 `?mode=run` (default) plays a full run, `?mode=encounter` is the single three-wave chamber, `?mode=training` is the practice courtyard with the dummy and totem, `?mode=sandbox` is the empty arena for tests that spawn enemies themselves.
