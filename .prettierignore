@@ -1,0 +1,9 @@
+dist
+coverage
+test-results
+playwright-report
+pnpm-lock.yaml
+public/assets
+assets-src
+tests/e2e/**/*-snapshots
+docs/progress/dashboard.html

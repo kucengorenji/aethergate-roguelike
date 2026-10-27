@@ -1,0 +1,10 @@
+{
+  "bundle": {
+    "maxTotalGzipKB": 1600,
+    "maxEntryGzipKB": 25
+  },
+  "frame": {
+    "maxAvgStepMs": 2,
+    "maxP95StepMs": 4
+  }
+}
