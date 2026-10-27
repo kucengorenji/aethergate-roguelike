@@ -21,6 +21,8 @@ export interface PostSettings {
     radius: number;
     /** Scene luminance (linear, before tone mapping) where bloom starts. */
     threshold: number;
+    /** Size of the first blur level relative to the screen; smaller is cheaper and softer. */
+    resolution: number;
   };
   grade: {
     /** Multiplies the scene before tone mapping. */
@@ -77,6 +79,7 @@ export class PostPipeline {
     this.glow.strength.value = b.strength;
     this.glow.radius.value = b.radius;
     this.glow.threshold.value = b.threshold;
+    if (this.glow.getResolutionScale() !== b.resolution) this.glow.setResolutionScale(b.resolution);
     this.exposure.value = g.exposure;
     this.gain.value.set(...g.gain);
     this.lift.value.set(...g.lift);

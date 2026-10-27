@@ -613,7 +613,11 @@ export const config = {
       alpha: 0.75,
     },
     post: {
-      bloom: { strength: 0.45, radius: 0.35, threshold: 1 },
+      /**
+       * `resolution` is the first blur level's size relative to the screen: a quarter
+       * keeps bloom cheap on integrated GPUs, and the glow is soft anyway.
+       */
+      bloom: { strength: 0.45, radius: 0.35, threshold: 1, resolution: 0.25 },
       grade: {
         exposure: 1,
         gain: [1.04, 1, 0.93] as [number, number, number],
