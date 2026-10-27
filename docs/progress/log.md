@@ -7,6 +7,9 @@ See `docs/workflows/progress.md`.
 
 ## 2026-10-27
 
+- M4: Spec 0005 done: seeded 8-room runs over 9 layouts, reward tokens, doors with reward previews, fades, run complete and new runs. Verify green, 112 unit and 53 E2E tests.
+- --: E2E suite 2.5 min to 44 s: paused test sessions render only on request, because each software-rendered frame (~130 ms) blocked test round trips.
+- M4: Asset spike 0009 started in parallel by a second agent in a Herdr pane, in worktree `~/aethergate-asset-spike`.
 - M4: Planned M4: specs 0005 to 0008 in order, asset spike 0009 in parallel with headless Blender and Quaternius UAL (CC0), full 4x4 boons plus 2 duos, Starfallen Knight boss.
 - M3: Exit check passed: Mikael playtested the three-wave encounter and approved it. M3 done.
 - M3: All M3 tasks built (spec 0004 done): four enemy kinds with telegraphed attacks, knight shields, three waves with a cleared state, training and sandbox modes. Verify green, 70 unit and 44 E2E tests, 30 enemies plus 200 projectiles at 1.19 ms per step. Exit check waits for a playtest.

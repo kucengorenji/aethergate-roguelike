@@ -1,7 +1,7 @@
 import { Animator } from '@engine/animation';
 import { RAPIER } from '@engine/physics';
 import * as THREE from 'three/webgpu';
-import type { ArenaLayout } from '../arenas/graybox';
+import type { ArenaLayout } from '../arenas/types';
 import { ACTOR_GROUPS } from '../combat/groups';
 import type { Entity } from '../components';
 import { config } from '../config';
@@ -53,8 +53,8 @@ export function spawnPlayer(ctx: Ctx, layout: ArenaLayout): Entity {
   });
 }
 
-/** Puts the player back at spawn with full health, focus and flasks, standing still. */
-export function resetPlayer(ctx: Ctx, player: Entity, layout: ArenaLayout): void {
+/** Moves the player to a layout's entrance, standing still and facing into the room. */
+export function placePlayer(ctx: Ctx, player: Entity, layout: ArenaLayout): void {
   const { body, look, locomotion } = player;
   if (!body || !look || !locomotion) return;
   const spawn = { x: layout.spawn.x, y: PLAYER_CENTER_Y, z: layout.spawn.z };
@@ -65,6 +65,12 @@ export function resetPlayer(ctx: Ctx, player: Entity, layout: ArenaLayout): void
   Object.assign(locomotion.velocity, { x: 0, y: 0, z: 0 });
   locomotion.speed = 0;
   locomotion.direction = 0;
+  ctx.snap(player);
+}
+
+/** Puts the player back at spawn with full health, focus and flasks, standing still. */
+export function resetPlayer(ctx: Ctx, player: Entity, layout: ArenaLayout): void {
+  placePlayer(ctx, player, layout);
   if (player.health) Object.assign(player.health, { current: player.health.max, invulnerable: 0 });
   if (player.caster)
     Object.assign(player.caster, { focus: player.caster.maxFocus, cooldown: 0, sinceCast: 99 });

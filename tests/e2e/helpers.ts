@@ -26,6 +26,21 @@ export interface Snapshot {
   bodies: number;
   encounter: { status: string; wave: number; total: number; timer: number };
   enemies: { kind: string; state: string; x: number; z: number; health: number; facing: number }[];
+  layout: string;
+  run: {
+    seed: number | null;
+    index: number;
+    status: string;
+    kind: string | null;
+    reward: string | null;
+    boons: number;
+    shards: number;
+    time: number;
+    layouts: string[];
+    offers: string[];
+  };
+  doors: { index: number; offer: string; open: boolean; x: number; z: number }[];
+  pickups: { reward: string; x: number; z: number }[];
   projectiles: number;
   projectileList: Vec3[];
   damageNumbers: number;
@@ -95,6 +110,8 @@ export async function holdFire(page: Page, steps: number): Promise<void> {
 export const DUMMY_CHEST = [1.2, 1.2, 5] as const;
 
 export const ENCOUNTER = 'test&seed=1&paused&mode=encounter';
+export const RUN = (seed = 7) => `test&seed=${seed}&paused&mode=run`;
+export const REWARD = { boon: 0, shards: 1, heal: 2, flask: 3 } as const;
 export const SANDBOX = 'test&seed=1&paused&mode=sandbox';
 export const KIND = { soldier: 0, caster: 1, knight: 2, hound: 3 } as const;
 
@@ -126,4 +143,42 @@ export async function advanceUntil(
   await page.evaluate(() => window.__game!.nextFrame());
   if (steps < 0) throw new Error(`condition not met within ${maxSteps} steps: ${done.toString()}`);
   return steps;
+}
+
+/** Kills waves until the current room's encounter is cleared (or has none). */
+export async function clearRoom(page: Page): Promise<void> {
+  for (let i = 0; i < 6; i++) {
+    const s = await inspect(page);
+    if (s.encounter.status === 'cleared' || s.encounter.status === 'off') return;
+    if (s.encounter.status === 'active') await act(page, 'killAllEnemies');
+    await advanceUntil(
+      page,
+      (x) => x.encounter.status !== 'active' || x.enemies.every((e) => e.state === 'dying'),
+      30,
+    );
+    await advanceUntil(
+      page,
+      (x) =>
+        ['active', 'cleared', 'off'].includes(x.encounter.status) &&
+        x.enemies.every((e) => e.state !== 'dying'),
+      400,
+    );
+  }
+  throw new Error('room did not clear');
+}
+
+/** Takes the room's reward token and goes through door `door` into the next room. */
+export async function takeRewardAndEnter(page: Page, door = 0): Promise<void> {
+  await advanceUntil(
+    page,
+    (s) => s.run.status === 'reward' || s.run.status === 'choosing' || s.run.status === 'complete',
+    30,
+  );
+  if ((await inspect(page)).run.status === 'complete') return;
+  await act(page, 'teleportToPickup');
+  await advanceUntil(page, (s) => s.run.status === 'choosing', 10);
+  await act(page, 'teleportToDoor', door);
+  await advance(page, 1);
+  await page.keyboard.press('KeyE');
+  await advanceUntil(page, (s) => s.run.status === 'fighting', 60);
 }

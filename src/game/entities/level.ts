@@ -1,6 +1,6 @@
 import { RAPIER } from '@engine/physics';
 import * as THREE from 'three/webgpu';
-import type { ArenaBox, ArenaLayout } from '../arenas/graybox';
+import type { ArenaBox, ArenaLayout } from '../arenas/types';
 import { config } from '../config';
 import type { Ctx } from '../types';
 
@@ -12,28 +12,35 @@ const materials = {
   trim: new THREE.MeshStandardMaterial({ color: config.colors.trim, roughness: 0.9 }),
 };
 
-/** Builds an arena from layout data: lights, fog, floor, perimeter walls and cover. */
-export function spawnArena(ctx: Ctx, layout: ArenaLayout): void {
-  const { scene } = ctx;
-  const { halfSize, wallHeight } = layout;
+/** Half size of the largest arena, so one shadow map covers every room. */
+const MAX_HALF_SIZE = 24;
 
+/** Builds what every room shares, once: sky, fog, lights and the distant tree. */
+export function spawnEnvironment(ctx: Ctx): void {
+  const { scene } = ctx;
   scene.background = new THREE.Color(config.colors.skyHorizon);
   scene.fog = new THREE.Fog(config.colors.fog, 25, 110);
   scene.add(new THREE.HemisphereLight(0xfff0d6, 0x9a8466, 1.9));
   spawnSky(scene);
 
-  // Low golden-hour sun from behind the spawn's left shoulder, so faces toward the
-  // player are lit and cover throws long readable shadows across the courtyard.
+  // Low golden-hour sun from behind the entrance's left shoulder, so faces toward
+  // the player are lit and cover throws long readable shadows across the room.
   const sun = new THREE.DirectionalLight(config.colors.sun, 3.2);
   sun.position.set(-20, 14, 16);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
   sun.shadow.bias = -0.0004;
   sun.shadow.normalBias = 0.03;
-  const s = halfSize + 4;
+  const s = MAX_HALF_SIZE + 4;
   Object.assign(sun.shadow.camera, { left: -s, right: s, top: s, bottom: -s, near: 1, far: 80 });
   scene.add(sun);
 
+  spawnDistantTree(scene);
+}
+
+/** Builds a room from layout data: floor, perimeter walls and cover, all tagged `room`. */
+export function spawnArena(ctx: Ctx, layout: ArenaLayout): void {
+  const { halfSize, wallHeight } = layout;
   const floor = new THREE.MeshStandardMaterial({
     map: flagstoneTexture((halfSize * 2) / 4),
     roughness: 0.95,
@@ -54,11 +61,22 @@ export function spawnArena(ctx: Ctx, layout: ArenaLayout): void {
     addBox(ctx, { x, y: 0, z, size: [w, wallHeight, d], kind: 'wall' });
   }
   for (const b of layout.boxes) addBox(ctx, b);
-
-  spawnDistantTree(scene);
 }
 
-function addBox(ctx: Ctx, b: ArenaBox, floorMaterial?: THREE.Material): void {
+/** Removes every entity of the current room, with its static body and own materials. */
+export function despawnRoom(ctx: Ctx): void {
+  for (const entity of [...ctx.world.with('room')]) {
+    const { room } = entity;
+    if (room.body) ctx.physics.world.removeRigidBody(room.body);
+    for (const m of room.dispose ?? []) {
+      if ('map' in m && m.map instanceof THREE.Texture) m.map.dispose();
+      m.dispose();
+    }
+    ctx.world.remove(entity);
+  }
+}
+
+function addBox(ctx: Ctx, b: ArenaBox, floorMaterial?: THREE.MeshStandardMaterial): void {
   const [w, h, d] = b.size;
   const rot = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), b.rotY ?? 0);
   const center = { x: b.x, y: b.y + h / 2, z: b.z };
@@ -73,7 +91,9 @@ function addBox(ctx: Ctx, b: ArenaBox, floorMaterial?: THREE.Material): void {
   mesh.quaternion.copy(rot);
   mesh.receiveShadow = true;
   mesh.castShadow = !floorMaterial;
-  ctx.world.add({ object3d: mesh });
+  // The static body lives in the room component, not `body`, so the engine does
+  // not interpolate level geometry every step; despawnRoom removes it.
+  ctx.world.add({ object3d: mesh, room: { body, dispose: floorMaterial ? [floorMaterial] : [] } });
 }
 
 /**

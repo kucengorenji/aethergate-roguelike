@@ -48,6 +48,7 @@ After a teleport, call `ctx.snap(entity)` so the next frame does not blend from 
 
 Gameplay is fully determined by the seed, the inputs and the step count.
 That is why Playwright can pause the game, press keys, call `advance(n)` and expect the exact same result on every machine.
+A test session opened with `?paused` renders only when the test hook asks for a frame (`advance`, `nextFrame`), because headless browsers render in software and a frame takes long enough to stall every test round trip.
 
 ## ECS in practice
 
@@ -84,9 +85,15 @@ The decision logic is a pure function (`src/game/ai/brains.ts`) from a small vie
 Systems run it (`enemy-ai`), move enemies through one shared character controller with separation steering (`enemy-motion`), resolve attacks (`enemy-attack`) and remove the dead (`enemy-death`); a frame system presents poses, glows and ground markers from the state (`enemy-pose`).
 Enemies collide with the level and the player but not with each other (`ENEMY_GROUPS`), because overlapping capsules lock the character controller.
 
+## Runs and rooms
+
+A run is pure data from the seed (`src/game/run/plan.ts`): 8 rooms with layouts and waves, and the door offers between them.
+The environment (sky, lights, fog) is built once; each room's geometry, doors and reward token are entities tagged `room`, and `despawnRoom` removes exactly those, including their static bodies.
+`systems/run.ts` is the room flow (fighting, reward, choosing, transition, complete) on top of the wave encounter.
+
 ## Modes
 
-`?mode=encounter` (default) runs the waves, `?mode=training` is the practice courtyard with the dummy and totem, `?mode=sandbox` is the empty arena for tests that spawn enemies themselves.
+`?mode=run` (default) plays a full run, `?mode=encounter` is the single three-wave chamber, `?mode=training` is the practice courtyard with the dummy and totem, `?mode=sandbox` is the empty arena for tests that spawn enemies themselves.
 
 ## Audio
 

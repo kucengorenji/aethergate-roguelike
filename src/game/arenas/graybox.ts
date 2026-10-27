@@ -1,47 +1,15 @@
-/**
- * The first handcrafted arena, as data. Boxes are axis-aligned before `rotY`
- * (radians); `size` is the full size in meters and `y` is the bottom.
- */
-export interface ArenaBox {
-  x: number;
-  y: number;
-  z: number;
-  size: [number, number, number];
-  rotY?: number;
-  kind: 'wall' | 'pillar' | 'cover' | 'trim';
-}
-
-export interface ArenaLayout {
-  /** Half the floor's side length. */
-  halfSize: number;
-  wallHeight: number;
-  spawn: { x: number; z: number; yaw: number };
-  /** Where enemies may rise, on open floor. */
-  enemySpawns: { x: number; z: number }[];
-  boxes: ArenaBox[];
-}
-
-const pillar = (x: number, z: number, h = 4.5): ArenaBox => ({
-  x,
-  y: 0,
-  z,
-  size: [1.2, h, 1.2],
-  kind: 'pillar',
-});
-const lowWall = (x: number, z: number, length: number, rotY = 0): ArenaBox => ({
-  x,
-  y: 0,
-  z,
-  size: [length, 1.1, 0.5],
-  rotY,
-  kind: 'cover',
-});
+import { lowWall, pillar, type ArenaLayout } from './types';
 
 /** A ruined courtyard: a broken arch in the middle, a ring of pillars, low walls for cover. */
 export const grayboxArena: ArenaLayout = {
+  id: 'courtyard',
   halfSize: 20,
   wallHeight: 4,
   spawn: { x: 0, z: 14, yaw: 0 },
+  doors: [
+    { x: -5, z: -18.6 },
+    { x: 5, z: -18.6 },
+  ],
   enemySpawns: [
     { x: -11, z: -17 },
     { x: -6, z: -16 },

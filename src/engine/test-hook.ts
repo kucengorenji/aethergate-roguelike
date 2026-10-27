@@ -55,6 +55,7 @@ export function installTestHook<E extends CoreComponents, S>(
   const nextFrame = () =>
     new Promise<void>((resolve) => {
       waiters.push(resolve);
+      game.requestFrame();
     });
 
   const { input } = game.ctx;

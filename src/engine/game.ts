@@ -70,6 +70,7 @@ export class Game<E extends CoreComponents, S> {
   private readonly fixedStep: FixedStep;
   private readonly clock = new THREE.Timer();
   private readonly afterRender: (() => void)[] = [];
+  private frameRequested = false;
   private readonly interpolator: Interpolator<E>;
 
   private constructor(
@@ -141,6 +142,14 @@ export class Game<E extends CoreComponents, S> {
     return this;
   }
 
+  /**
+   * Asks for one rendered frame. Test sessions opened with `?paused` only render
+   * on request (see `frame`); everywhere else every animation frame renders anyway.
+   */
+  requestFrame(): void {
+    this.frameRequested = true;
+  }
+
   onAfterRender(callback: () => void): void {
     this.afterRender.push(callback);
   }
@@ -166,6 +175,11 @@ export class Game<E extends CoreComponents, S> {
 
     const steps = this.paused ? 0 : this.fixedStep.consume(frameSeconds);
     this.advance(steps);
+    // Paused test sessions render only when a test asks for a frame: a software-
+    // rendered headless frame takes ~130 ms, and rendering every animation frame
+    // would starve each test round trip behind it.
+    if (this.params.test && this.params.paused && this.paused && !this.frameRequested) return;
+    this.frameRequested = false;
 
     this.ctx.dt = frameSeconds;
     this.ctx.alpha = this.paused ? 1 : this.fixedStep.alpha;

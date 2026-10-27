@@ -8,6 +8,8 @@ import {
   KIND,
   openGame,
   pixelsForRadians,
+  REWARD,
+  RUN,
   SANDBOX,
 } from './helpers';
 
@@ -63,4 +65,24 @@ test('wave fight with a telegraph', async ({ page }) => {
   );
   await advance(page, 25);
   await expect(page).toHaveScreenshot('wave-fight.png');
+});
+
+test('door choice after taking the reward', async ({ page }) => {
+  await openGame(page, RUN());
+  await act(page, 'goToRoom', 1, REWARD.heal);
+  await act(page, 'killAllEnemies');
+  await act(page, 'goToRoom', 2, REWARD.shards);
+  await advance(page, 2);
+  await act(page, 'teleportToPickup');
+  await advance(page, 2);
+  await act(page, 'resetPlayer');
+  await advance(page, 150);
+  await expect(page).toHaveScreenshot('door-choice.png');
+});
+
+test('grace room with its reward', async ({ page }) => {
+  await openGame(page, RUN());
+  await act(page, 'goToRoom', 2, REWARD.boon);
+  await advance(page, 30);
+  await expect(page).toHaveScreenshot('grace-room.png');
 });

@@ -1,6 +1,7 @@
 import type { CoreComponents } from '@engine/ecs';
 import type { RAPIER } from '@engine/physics';
 import type * as THREE from 'three/webgpu';
+import type { Offer, Reward } from './run/rewards';
 
 export type ActionKind = 'none' | 'dodge' | 'bash' | 'drink';
 export type EnemyKind = 'soldier' | 'caster' | 'knight' | 'hound';
@@ -9,6 +10,12 @@ export type EnemyState = 'rising' | 'chase' | 'windup' | 'attack' | 'recover' | 
 /** All components in the game. Add new optional fields here as the game grows. */
 export interface Entity extends CoreComponents {
   player?: true;
+  /** Belongs to the current room: removed with it. Static level bodies live here, not in `body`. */
+  room?: { body?: RAPIER.RigidBody; dispose?: THREE.Material[] };
+  /** A door on the far wall that leads to the next room. */
+  door?: { index: number; offer: Offer; open: boolean; portal: THREE.Mesh; emblem: THREE.Object3D };
+  /** A reward token waiting to be picked up. */
+  pickup?: { reward: Reward; x: number; z: number };
   /** Where the entity aims. Yaw 0 faces -z; positive pitch looks up. Radians. */
   look?: { yaw: number; pitch: number };
   /** Kinematic movement state, driven by the character controller. */

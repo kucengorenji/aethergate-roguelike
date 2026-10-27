@@ -2,6 +2,7 @@ import { config } from '../config';
 import type { GameSystem } from '../types';
 
 const STEP = 1 / 60;
+const MESSAGE_SECONDS = 2.4;
 
 /**
  * Hitstop, camera kick and shake, hurt flash, hit flash, damage numbers and
@@ -34,6 +35,10 @@ export const feedbackSystem: GameSystem = (ctx) => {
   const numbers = state.damageNumbers;
   for (const n of numbers) n.age += STEP;
   while (numbers.length > 0 && numbers[0]!.age > f.numberSeconds) numbers.shift();
+  if (state.message) {
+    state.message.age += STEP;
+    if (state.message.age > MESSAGE_SECONDS) state.message = null;
+  }
   const impacts = state.impacts;
   for (const im of impacts) im.age += STEP;
   while (impacts.length > 0 && impacts[0]!.age > 0.25) impacts.shift();

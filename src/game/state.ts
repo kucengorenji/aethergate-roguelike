@@ -1,7 +1,12 @@
+import type { ArenaLayout } from './arenas/types';
+import { grayboxArena } from './arenas/graybox';
 import { ProjectilePool } from './combat/projectiles';
+import type { RunPlan, Wave } from './run/plan';
+import type { Reward } from './run/rewards';
 
 export type Phase = 'playing' | 'dead';
-export type Mode = 'encounter' | 'training' | 'sandbox';
+export type Mode = 'run' | 'encounter' | 'training' | 'sandbox';
+export type RunStatus = 'fighting' | 'reward' | 'choosing' | 'transition' | 'complete';
 export type EncounterStatus = 'off' | 'waiting' | 'active' | 'intermission' | 'cleared';
 
 export interface DamageNumber {
@@ -24,8 +29,33 @@ export interface Impact {
 export interface GameState {
   phase: Phase;
   mode: Mode;
+  /** The room the player is in. */
+  layout: ArenaLayout;
+  run: {
+    plan: RunPlan | null;
+    /** Index of the current room in the plan. */
+    index: number;
+    status: RunStatus;
+    /** Seconds in the current status. */
+    timer: number;
+    /** What the current room grants when cleared (null for the boss). */
+    reward: Reward | null;
+    /** Door picked during a transition. */
+    chosen: number;
+    /** Whether the next room was loaded during the current transition. */
+    loaded: boolean;
+    boons: number;
+    shards: number;
+    /** Seconds since the run started. */
+    time: number;
+  };
+  /** A short message on screen (rewards), with its age in seconds. */
+  message: { text: string; age: number } | null;
   encounter: {
     status: EncounterStatus;
+    waves: Wave[];
+    /** Seconds after the pointer lock (first room) or the fade-in before wave 1. */
+    startDelay: number;
     /** Index of the current (or next) wave. */
     wave: number;
     total: number;
@@ -51,14 +81,30 @@ export interface GameState {
   stats: { casts: number; hits: number };
 }
 
-export function createState(mode: Mode = 'encounter', waves = 0): GameState {
+export function createState(mode: Mode = 'run', waves: Wave[] = [], startDelay = 2): GameState {
   return {
     phase: 'playing',
     mode,
+    layout: grayboxArena,
+    run: {
+      plan: null,
+      index: 0,
+      status: 'fighting',
+      timer: 0,
+      reward: null,
+      chosen: 0,
+      loaded: false,
+      boons: 0,
+      shards: 0,
+      time: 0,
+    },
+    message: null,
     encounter: {
       status: mode === 'encounter' ? 'waiting' : 'off',
+      waves,
+      startDelay,
       wave: 0,
-      total: waves,
+      total: waves.length,
       timer: 0,
     },
     elapsed: 0,

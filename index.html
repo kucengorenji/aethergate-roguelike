@@ -23,10 +23,21 @@
 
     <div class="controls">
       <kbd>WASD</kbd> move · <kbd>LMB</kbd> cast · <kbd>Space</kbd> dodge · <kbd>F</kbd> bash ·
-      <kbd>Q</kbd> flask · <kbd>R</kbd> restart · <kbd>Esc</kbd> release mouse
+      <kbd>Q</kbd> flask · <kbd>E</kbd> door · <kbd>Esc</kbd> release mouse
     </div>
 
     <div class="wave" id="wave" hidden></div>
+    <div class="run-stats" id="run-stats" hidden>
+      <span class="stat boon" aria-label="Blessings"><i></i><b id="stat-boons">0</b></span>
+      <span class="stat shards" aria-label="Lumen shards"><i></i><b id="stat-shards">0</b></span>
+    </div>
+    <div class="toast" id="toast" hidden></div>
+    <div class="door-prompt" id="door-prompt" hidden><kbd>E</kbd> <span></span></div>
+    <div class="complete" id="complete" hidden>
+      <h1>The Aethergate opens</h1>
+      <p>Run time <span data-time></span> · Press <kbd>R</kbd> for a new run</p>
+    </div>
+    <div class="fade" id="fade" aria-hidden="true"></div>
     <div class="cleared" id="cleared" hidden>
       <h1>Chamber cleared</h1>
       <p>Press <kbd>R</kbd> to fight again</p>

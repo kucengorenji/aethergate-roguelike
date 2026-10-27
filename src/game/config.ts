@@ -143,6 +143,28 @@ export const config = {
     /** Radians per second enemies turn toward their target. */
     turnRate: 8,
   },
+  run: {
+    /** Seconds between the fade-in and the first wave in later rooms. */
+    startDelay: 1.5,
+    fadeSeconds: 0.35,
+    baseBudget: 3,
+    budgetPerDepth: 1.2,
+    rewardPool: ['boon', 'shards', 'heal', 'flask'] as const,
+    shards: 25,
+    /** Fraction of max health a Heal restores. */
+    heal: 0.3,
+    /** Placeholders until spec 0008 brings the real mini-boss and boss. */
+    eliteWaves: [
+      { knight: 1, soldier: 3 },
+      { knight: 2, caster: 2 },
+    ] as Partial<Record<'soldier' | 'caster' | 'knight' | 'hound', number>>[],
+    bossWaves: [
+      { knight: 2, soldier: 4, caster: 2, hound: 2 },
+      { knight: 3, hound: 3, caster: 2 },
+    ] as Partial<Record<'soldier' | 'caster' | 'knight' | 'hound', number>>[],
+    pickupRadius: 1.3,
+    doorRadius: 2.4,
+  },
   encounter: {
     startDelay: 2,
     intermission: 2,

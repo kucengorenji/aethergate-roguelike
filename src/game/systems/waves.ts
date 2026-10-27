@@ -1,5 +1,5 @@
-import { grayboxArena } from '../arenas/graybox';
 import type { EnemyKind } from '../components';
+import type { Wave } from '../run/plan';
 import { config } from '../config';
 import { despawnEnemy, ENEMY_KINDS, spawnEnemy } from '../entities/enemy';
 import type { Ctx, GameSystem } from '../types';
@@ -17,7 +17,7 @@ export const wavesSystem: GameSystem = (ctx) => {
   switch (enc.status) {
     case 'waiting':
       if (!input.locked) enc.timer = 0;
-      else if (enc.timer >= config.encounter.startDelay) startWave(ctx, 0);
+      else if (enc.timer >= enc.startDelay) startWave(ctx, 0);
       break;
     case 'intermission':
       if (enc.timer >= config.encounter.intermission) startWave(ctx, enc.wave + 1);
@@ -43,7 +43,7 @@ export function startWave(ctx: Ctx, index: number): void {
   enc.status = 'active';
   enc.wave = index;
   enc.timer = 0;
-  const wave = config.encounter.waves[index] ?? {};
+  const wave = enc.waves[index] ?? {};
   const kinds: EnemyKind[] = [];
   for (const kind of ENEMY_KINDS) for (let i = 0; i < (wave[kind] ?? 0); i++) kinds.push(kind);
   const points = spawnPoints(ctx, kinds.length);
@@ -59,7 +59,10 @@ export function startWave(ctx: Ctx, index: number): void {
 /** Spawn points at least the minimum distance from the player, shuffled by the seeded RNG. */
 function spawnPoints(ctx: Ctx, count: number): { x: number; z: number }[] {
   const p = ctx.world.with('player', 'body').first?.body.translation() ?? { x: 0, z: 0 };
-  const all = grayboxArena.enemySpawns.map((s) => ({ ...s, d: Math.hypot(s.x - p.x, s.z - p.z) }));
+  const all = ctx.state.layout.enemySpawns.map((s) => ({
+    ...s,
+    d: Math.hypot(s.x - p.x, s.z - p.z),
+  }));
   let far = all.filter((s) => s.d >= config.encounter.minSpawnDistance);
   if (far.length < Math.min(count, 3))
     far = [...all].sort((a, b) => b.d - a.d).slice(0, Math.max(3, count));
@@ -72,8 +75,25 @@ function spawnPoints(ctx: Ctx, count: number): { x: number; z: number }[] {
 
 /** Removes every enemy and returns the encounter to waiting for wave 1. */
 export function resetEncounter(ctx: Ctx): void {
-  for (const e of [...ctx.world.with('enemy')]) despawnEnemy(ctx, e);
+  removeEnemies(ctx);
   const enc = ctx.state.encounter;
   if (enc.status === 'off') return;
   Object.assign(enc, { status: 'waiting', wave: 0, timer: 0 });
+}
+
+/** Sets up the encounter for a room: its waves, or none (status off). */
+export function setEncounter(ctx: Ctx, waves: Wave[], startDelay: number): void {
+  removeEnemies(ctx);
+  Object.assign(ctx.state.encounter, {
+    status: waves.length > 0 ? 'waiting' : 'off',
+    waves,
+    startDelay,
+    wave: 0,
+    total: waves.length,
+    timer: 0,
+  });
+}
+
+function removeEnemies(ctx: Ctx): void {
+  for (const e of [...ctx.world.with('enemy')]) despawnEnemy(ctx, e);
 }

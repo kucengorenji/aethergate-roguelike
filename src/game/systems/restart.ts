@@ -1,18 +1,28 @@
-import { grayboxArena } from '../arenas/graybox';
 import { config } from '../config';
 import { resetPlayer } from '../entities/player';
 import type { Ctx, GameSystem } from '../types';
+import { startRun } from './run';
 import { resetEncounter } from './waves';
 
-/** R restarts the encounter at any time; falling out of the world resets the player. */
+/**
+ * R starts a new run after death or victory (in a run), or restarts the chamber
+ * at any time (other modes). Falling out of the world resets the player.
+ */
 export const restartSystem: GameSystem = (ctx) => {
+  const { state } = ctx;
   if (ctx.input.wasPressed('KeyR')) {
-    restartEncounter(ctx);
-    return;
+    if (state.mode !== 'run') {
+      restartEncounter(ctx);
+      return;
+    }
+    if (state.phase === 'dead' || state.run.status === 'complete') {
+      startRun(ctx, (state.run.plan?.seed ?? 0) + 1);
+      return;
+    }
   }
   for (const player of ctx.world.with('player', 'body')) {
     if (player.body.translation().y < config.player.respawnBelowY) {
-      resetPlayer(ctx, player, grayboxArena);
+      resetPlayer(ctx, player, state.layout);
     }
   }
 };
@@ -21,7 +31,7 @@ export const restartSystem: GameSystem = (ctx) => {
 export function restartEncounter(ctx: Ctx): void {
   const { state } = ctx;
   resetEncounter(ctx);
-  for (const player of ctx.world.with('player')) resetPlayer(ctx, player, grayboxArena);
+  for (const player of ctx.world.with('player')) resetPlayer(ctx, player, state.layout);
   for (const { dummy, health, model } of ctx.world.with('dummy', 'health')) {
     health.current = health.max;
     Object.assign(dummy, { offset: { x: 0, z: 0 }, velocity: { x: 0, z: 0 }, downTime: 0 });

@@ -80,3 +80,20 @@ test('30 enemies and 200 projectiles stay within the CPU budget', async ({ page 
   expect(stats.avg).toBeLessThanOrEqual(budget.maxAvgStepMs);
   expect(stats.p95).toBeLessThanOrEqual(budget.maxP95StepMs);
 });
+
+test('room changes stay smooth', async ({ page }) => {
+  await openGame(page, 'test&seed=7&paused&mode=run');
+  const stats = await page.evaluate(() => {
+    const g = window.__game!;
+    g.resetStepTimes();
+    for (let room = 1; room < 8; room++) {
+      g.act('goToRoom', room, 0);
+      g.advanceSync(20);
+    }
+    return g.stepTimes();
+  });
+  console.log(
+    `room changes, step ms: avg ${stats.avg.toFixed(3)}, p95 ${stats.p95.toFixed(3)}, max ${stats.max.toFixed(3)}`,
+  );
+  expect(stats.p95).toBeLessThanOrEqual(budget.maxP95StepMs);
+});

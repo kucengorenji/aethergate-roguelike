@@ -10,7 +10,7 @@ import { aimAnglesAt } from './combat/camera-rig';
 import { ProjectileKind, Team } from './combat/projectiles';
 import { spawnDummy } from './entities/dummy';
 import { ENEMY_KINDS, spawnEnemy } from './entities/enemy';
-import { spawnArena } from './entities/level';
+import { spawnArena, spawnEnvironment } from './entities/level';
 import { resetPlayer, spawnPlayer } from './entities/player';
 import { spawnTotem } from './entities/totem';
 import { createState, type GameState, type Mode } from './state';
@@ -35,6 +35,9 @@ import { restartEncounter, restartSystem } from './systems/restart';
 import { timerSystem } from './systems/timer';
 import { totemSystem } from './systems/totem';
 import { startWave, wavesSystem } from './systems/waves';
+import { interactSystem } from './systems/interact';
+import { roomPropsSystem } from './systems/room-props';
+import { enterRoom, runSystem, startRun } from './systems/run';
 import { tpsCameraSystem } from './systems/tps-camera';
 import { createDamageNumbersSystem } from './ui/damage-numbers';
 import { createHudSystem } from './ui/hud';
@@ -48,7 +51,11 @@ export async function createGame(
   const game = await Game.create<Entity, GameState>({
     canvas,
     params,
-    state: createState(mode, config.encounter.waves.length),
+    state: createState(
+      mode,
+      mode === 'encounter' ? config.encounter.waves : [],
+      config.encounter.startDelay,
+    ),
   });
   const { ctx } = game;
 
@@ -56,8 +63,10 @@ export async function createGame(
   ctx.camera.updateProjectionMatrix();
   registerSounds(ctx.audio);
 
-  spawnArena(ctx, grayboxArena);
+  spawnEnvironment(ctx);
+  if (mode !== 'run') spawnArena(ctx, grayboxArena);
   const player = spawnPlayer(ctx, grayboxArena);
+  if (mode === 'run') startRun(ctx, params.seed);
   // Training mode keeps the M2 practice courtyard; the encounter has waves instead.
   const dummy = mode === 'training' ? spawnDummy(ctx, 1.2, 5) : null;
   if (mode === 'training') spawnTotem(ctx, -2.5, 0.3, -8);
@@ -68,6 +77,8 @@ export async function createGame(
   game
     .addFixedSystem(restartSystem)
     .addFixedSystem(wavesSystem)
+    .addFixedSystem(runSystem)
+    .addFixedSystem(interactSystem)
     .addFixedSystem(lookSystem)
     .addFixedSystem(actionsSystem)
     .addFixedSystem(locomotionSystem)
@@ -88,6 +99,7 @@ export async function createGame(
     .addFrameSystem(createProjectileRenderSystem(ctx))
     .addFrameSystem(playerFacingSystem)
     .addFrameSystem(enemyPoseSystem)
+    .addFrameSystem(roomPropsSystem)
     .addFrameSystem(tpsCameraSystem)
     .addFrameSystem(createDamageNumbersSystem())
     .addFrameSystem(createHudSystem());
@@ -145,6 +157,27 @@ export async function createGame(
             ? { health: dummy.health!.current, x: d.x, z: d.z, down: dummy.dummy!.downTime > 0 }
             : null,
         mode: ctx.state.mode,
+        layout: ctx.state.layout.id,
+        run: {
+          seed: ctx.state.run.plan?.seed ?? null,
+          index: ctx.state.run.index,
+          status: ctx.state.run.status,
+          kind: ctx.state.run.plan?.rooms[ctx.state.run.index]?.kind ?? null,
+          reward: ctx.state.run.reward,
+          boons: ctx.state.run.boons,
+          shards: ctx.state.run.shards,
+          time: ctx.state.run.time,
+          layouts: ctx.state.run.plan?.rooms.map((r) => r.layout) ?? [],
+          offers: ctx.state.run.plan?.offers[ctx.state.run.index] ?? [],
+        },
+        doors: [...ctx.world.with('door', 'object3d')].map(({ door, object3d }) => ({
+          index: door.index,
+          offer: door.offer,
+          open: door.open,
+          x: object3d.position.x,
+          z: object3d.position.z,
+        })),
+        pickups: [...ctx.world.with('pickup')].map(({ pickup }) => ({ ...pickup })),
         bodies: ctx.physics.world.bodies.len(),
         encounter: { ...ctx.state.encounter },
         enemies: [...ctx.world.with('enemy', 'body', 'health')].map(({ enemy, body, health }) => {
@@ -208,6 +241,30 @@ export async function createGame(
         const e = [...ctx.world.with('enemy')][index];
         if (e) e.enemy.facing = yaw;
       },
+      newRun: (seed) => {
+        startRun(ctx, seed);
+      },
+      /** Jumps the run to room `index` with a reward, skipping the rooms before it. */
+      goToRoom: (index, reward = 0) => {
+        enterRoom(ctx, index, (['boon', 'shards', 'heal', 'flask'] as const)[reward] ?? null);
+        Object.assign(ctx.state.run, { status: 'fighting', timer: 0 });
+      },
+      /** Puts the player in front of door `index`. */
+      teleportToDoor: (index) => {
+        const door = [...ctx.world.with('door', 'object3d')].find((d) => d.door.index === index);
+        if (!door) return;
+        const { x, z } = door.object3d.position;
+        player.body!.setTranslation({ x, y: 0.9, z: z + 1.4 }, true);
+        player.body!.setNextKinematicTranslation({ x, y: 0.9, z: z + 1.4 });
+        ctx.snap(player);
+      },
+      teleportToPickup: () => {
+        const pickup = ctx.world.with('pickup').first?.pickup;
+        if (!pickup) return;
+        player.body!.setTranslation({ x: pickup.x, y: 0.9, z: pickup.z + 0.5 }, true);
+        player.body!.setNextKinematicTranslation({ x: pickup.x, y: 0.9, z: pickup.z + 0.5 });
+        ctx.snap(player);
+      },
       startWave: (index) => {
         startWave(ctx, index);
       },
@@ -263,7 +320,7 @@ export async function createGame(
 
 function readMode(): Mode {
   const mode = new URLSearchParams(window.location.search).get('mode');
-  return mode === 'training' || mode === 'sandbox' ? mode : 'encounter';
+  return mode === 'training' || mode === 'sandbox' || mode === 'encounter' ? mode : 'run';
 }
 
 function aliveProjectiles(pool: GameState['projectiles']): { x: number; y: number; z: number }[] {
@@ -309,5 +366,12 @@ function registerSounds(audio: Game<Entity, GameState>['ctx']['audio']): void {
     noiseBurst({ duration: 0.45, decay: 8, smoothing: 0.96, gain: 0.8, seed: 7 }),
   );
   audio.register('wave', sweep({ duration: 0.8, from: 110, to: 220, decay: 3, gain: 0.5 }));
+  audio.register('reward', sweep({ duration: 0.6, from: 520, to: 1040, decay: 4, gain: 0.35 }));
+  audio.register('pickup', sweep({ duration: 0.5, from: 660, to: 1320, decay: 5, gain: 0.45 }));
+  audio.register('doors', sweep({ duration: 0.9, from: 140, to: 280, decay: 3, gain: 0.45 }));
+  audio.register(
+    'door',
+    noiseBurst({ duration: 0.6, decay: 5, smoothing: 0.97, gain: 0.6, seed: 8 }),
+  );
   audio.register('cleared', sweep({ duration: 1.2, from: 330, to: 880, decay: 2.2, gain: 0.45 }));
 }
