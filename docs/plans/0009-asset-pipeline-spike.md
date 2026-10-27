@@ -68,3 +68,11 @@ Spec: docs/specs/0009-asset-pipeline-spike.md
 - Library clips start from different stances, so layer deltas are taken against the first idle frame; layers over `run` may look stiffer than over `idle`.
 - Meshopt quantization of a skinned mesh must keep the bind pose intact; checked in screenshots.
 - Visual baselines with the player in view all change.
+
+## Changes during the build
+
+- The library's clips are imported at the scene rate (30 fps), so the script converts the library's 24 fps frame numbers in one place (`sample_library`).
+- `run`: the jog counter-rotates the chest by about 36 degrees, which swung the held staff from side to side. The staff arm keeps most of the idle carry, the chest twist is halved, and the wrist keeps the staff pointing along the carry direction.
+- `bmesh.ops.solidify` left zero-area rims on open shells, so the script has its own `shell` helper; the census caught it.
+- The existing visual baselines stayed within the 1% pixel tolerance with the new character, so they were re-recorded with `--update-snapshots=all` to show it, and three poses were added (dodge, bash, drink).
+- `playwright.config.ts` reads `E2E_PORT`, because a parallel checkout on the same machine would otherwise reuse the other checkout's preview server on port 4173.
