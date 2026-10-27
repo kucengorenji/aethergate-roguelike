@@ -1,6 +1,6 @@
 # Aethergate visual style guide
 
-Status: draft (Round B references in progress)
+Status: ready for Mikael's review (Round A and Round B references complete)
 Source: the Codex frames Mikael approved on 2026-10-27 (spec 0013), ADR 0004.
 
 This guide turns the concept frames into rules an asset script, a shader or a HUD panel can follow.
@@ -29,19 +29,22 @@ When a frame and this guide disagree, this guide wins, because the frames are il
 
 Color carries gameplay meaning, so each hue family belongs to one owner.
 
-| Hue         | Owner                                                                              | Never used for                                                |
-| ----------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| Pale blue   | The player's magic (bolts, staff crystal, comet core) and the upgrade crystal      | Enemies, the environment                                      |
-| Orange-red  | Enemy threat: eyes, telegraphs, enemy projectiles, burning arena edges             | Friendly fire, decoration, braziers                           |
-| Green       | Thorn casters and their magic                                                      | Anything else                                                 |
-| Violet glow | The Starfallen Knight's starlight                                                  | The player's robe is dark, desaturated violet and never glows |
-| Gold        | The world and everything friendly: grace, doors, rewards, trim, the great tree, UI | Threats                                                       |
+| Hue         | Owner                                                                                                      | Never used for                                                |
+| ----------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Pale blue   | The player's magic (bolts, staff crystal, comet core) and the upgrade crystal                              | Enemies, the environment                                      |
+| Orange-red  | Enemy threat: eyes, telegraphs, the core of every enemy projectile (the caster's too), burning arena edges | Friendly fire, decoration, braziers                           |
+| Green       | The Thorn Caster's gem and its casting glow                                                                | Anything else, including the rot blessing                     |
+| Violet glow | Starlight: the Starfall General's blessings and the Starfallen Knight                                      | The player's robe is dark, desaturated violet and never glows |
+| Gold        | The world and everything friendly: grace, doors, rewards, trim, the great tree, UI                         | Threats                                                       |
 
 Consequences:
 
 - The environment stays desaturated (stone, wood, roots), so magic and threats are the most saturated things on screen.
 - Braziers and torches burn golden yellow, not orange-red, so fire never reads as a telegraph.
 - The heal reward is a deep crimson inside a gold ring, kept cooler and darker than threat orange.
+- Blessings tint the player's magic in their demigod's color: moon `#8fd3ff`, star `#b48cff`, rot `#b5a642`, storm `#ffe066` (`DEMIGODS` in `src/game/boons/data.ts`).
+  Rot moves from `#9bc53d` to a muted ochre-olive, so a rotting enemy never reads as a Thorn Caster.
+- Anything that can hurt the player has an orange-red core, whatever its owner's color, so threats read the same everywhere.
 
 ## Palette
 
@@ -139,6 +142,16 @@ Silhouette rules for every character, so each reads by shape alone:
 | Starfallen Knight | About twice the player's height, jagged plates, huge greatsword          | Star points, violet      |
 
 Scale: the player is 1.8 m tall (the gameplay capsule); every other character keeps the proportions of the lineup frame.
+
+Build notes from the turnaround sheets:
+
+- **Sorcerer:** the robe is the deeper violet of the palette with gold sash and trim; the hood hides the face completely (a dark void, no features to model); hands are dark gloves; the twisted staff carries the pale blue crystal in a forked head.
+- **Hollow Soldier:** a skull face inside an open helm, bronze-brown plates with rust patches, rust-red tattered cloth kept desaturated (it must not read as threat orange); the eyes are the only glow.
+- **Thorn Caster:** pale green-grey face, robe in layered dusty green and beige panels over a dark violet-grey underskirt, thorn vines as a few thick spiral tubes, not many thin ones; the crown is a ring of thorns behind the head.
+- **Ward Knight:** stone-grey armor with gold trim only, so the Ward Captain stays the one gilded figure (the turnaround sheet is too gold; desaturate it toward `pillar` and `trim`); the tower shield is a separate rigid piece on the left arm.
+- **Rot Hound:** ash-brown fur as large spiky shards along the back and tail, ribs as a few painted ridges, long thin legs; the only humanoid-free rig, keyframed by hand (ADR 0004).
+- **Ward Captain:** full bright gold armor, the fan crest and the long gold cloak are its silhouette; the cloak is two or three large panels.
+- **Starfallen Knight:** dark bronze-grey jagged plates, a cape in dusty violet panels, star points as small emissive quads in `starGlow`, the greatsword blade emissive violet along its edge.
 
 ## Environment kit
 

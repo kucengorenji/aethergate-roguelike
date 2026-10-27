@@ -1,6 +1,6 @@
 # 0013: Concept art and style direction
 
-Status: in-progress
+Status: done
 Owner: Mikael (concept by two image agents in Herdr panes, Codex and Antigravity)
 
 ## Problem
@@ -49,9 +49,9 @@ Notes carried into Round B and the style guide:
 
 - [x] Round A: four frames from each agent exist on disk, with the exact prompts recorded next to them. Codex delivered four (`round-a/codex-prompts.md`); Antigravity none, see the decision above.
 - [x] Mikael has chosen a direction: Codex, 2026-10-27.
-- [ ] Round B references exist on disk in the chosen direction, with prompts recorded.
-- [ ] `docs/design/style-guide.md` turns the chosen frames into rules for models, materials, palette, lighting, outlines and UI.
-- [ ] Every image has a line in `assets-src/LICENSES.md`.
+- [x] Round B references exist on disk in the chosen direction, with prompts recorded: seven turnarounds, the ruin kit, the hall sheet and the HUD sheet in `round-b/`, prompts in `codex-chars-prompts.md` and `codex-env-prompts.md`.
+- [x] `docs/design/style-guide.md` turns the chosen frames into rules for models, materials, palette, lighting, outlines and UI.
+- [x] Every image has a line in `assets-src/LICENSES.md` (the `assets-src/concept/` row).
 
 ## Out of scope
 

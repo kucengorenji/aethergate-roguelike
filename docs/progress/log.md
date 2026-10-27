@@ -7,6 +7,7 @@ See `docs/workflows/progress.md`.
 
 ## 2026-10-27
 
+- M6: Wave 0 done (spec 0013): ten Round B sheets from two Codex artists, and the style guide is ready for Mikael's review (color language, budgets, materials, outlines, light, per-character notes).
 - M6: VFX in code (spec 0014) handed to a cloud session on the claude-work profile (Opus 5.5, xhigh), branch `feat/m6-vfx`, PR into `feat/m6-pipeline`.
 - M6: Mikael approved the Codex direction; Round B started with two Codex artists in a Herdr `art` tab (character turnarounds; ruin kit, hall sheet and HUD sheet), and the style guide draft is written.
 - M6: Asset budget (40 MB) and license manifest checks are in `pnpm perf` (commit 6091119).

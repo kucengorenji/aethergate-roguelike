@@ -93,8 +93,8 @@ Weeks: 6-10 (expanded on 2026-10-27: the most important and longest milestone)
 Decided with Mikael: painterly low-poly (low-poly models, painted gradient atlases, thin outlines, dramatic light, bloom and color grade); style frames approved before any modeling; at most 40 MB of assets in the browser build; humanoid animation retargeted from Quaternius UAL with custom keyframes for the hound and boss specials; all audio from ElevenLabs (free tier, see ADR 0004); at most three parallel agents (7 GB RAM).
 Work runs in waves of parallel agents in Herdr panes; HUD and VFX are built in code between waves.
 
-- [~] Wave 0, concept: style frames for the hall, a combat room and the boss arena, turnaround sheets for the player, four enemies and two bosses, an environment kit sheet, a HUD and icon mock; Mikael picks the direction (spec 0013).
-- [~] A visual style guide in `docs/design/style-guide.md` from the approved frames: palette, shapes, materials, lighting, outline, UI.
+- [x] Wave 0, concept: style frames for the hall, a combat room and the boss arena, turnaround sheets for the player, four enemies and two bosses, an environment kit sheet, a HUD and icon mock; Mikael picks the direction (spec 0013).
+- [x] A visual style guide in `docs/design/style-guide.md` from the approved frames: palette, shapes, materials, lighting, outline, UI.
 - [x] An asset budget check (40 MB) and a license manifest for every asset (source, tool, plan, date).
 - [ ] Wave 1, characters: player and the four enemies modeled, rigged and animated (idle, move, attack wind-up and strike, hit, death, spawn), plus the Ward Captain and the Starfallen Knight with their special attacks.
 - [ ] Wave 1, environment: a modular ruin kit (walls, pillars, arches, floors, rubble, graves, roots, braziers), the Kindled Hall's stations, doors, reward tokens and the distant tree, replacing the graybox in every layout.
