@@ -7,6 +7,8 @@ See `docs/workflows/progress.md`.
 
 ## 2026-10-27
 
+- M1: Started M1 on branch `feat/m1-tps-graybox`, writing spec 0002 (engine foundations) and spec 0003 (TPS graybox).
+- M0: Initial commit `bfe8fbe` on `main`, hooks (format, lint, typecheck, commitlint) passed. M0 done.
 - M0: Reviewed setup again, verify green with 19 unit and 6 E2E tests, dashboard checked at desktop, light theme and phone width.
 - M0: Added progress tracking: checkbox milestones, this log, `pnpm progress` dashboard and the progress skill.
 - M0: Reviewed the setup, `pnpm verify` green (perf step avg 0.10 ms, bundle 1432 / 1600 KB gzip).

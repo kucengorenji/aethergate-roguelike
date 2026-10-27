@@ -22,7 +22,7 @@ Weeks: day 0
 - [x] Game design, milestones and ADR 0002 written from the grilling session.
 - [x] Playwright system dependencies installed on WSL, visual baselines recorded.
 - [x] Progress tracking: milestone checkboxes, progress log, generated dashboard, progress skill.
-- [ ] Initial commit on `main`.
+- [x] Initial commit on `main`.
 - [x] **Exit:** `pnpm verify` is green and the dashboard shows the real state of the project.
 
 ## M1: Engine foundations and a TPS graybox
