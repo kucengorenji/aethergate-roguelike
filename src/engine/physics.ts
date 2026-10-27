@@ -3,6 +3,7 @@ import * as RAPIER from '@dimforge/rapier3d';
 import * as THREE from 'three/webgpu';
 
 export { RAPIER };
+export { interactionGroups } from './collision-groups';
 
 /** Thin wrapper over a Rapier world with an optional wireframe debug view. */
 export class Physics {
@@ -18,19 +19,23 @@ export class Physics {
     this.world.step();
   }
 
-  /** Casts a ray and returns the distance to the first hit, or null. */
+  /**
+   * Casts a ray and returns the distance to the first hit, or null. `groups`
+   * limits which colliders count (see `interactionGroups`).
+   */
   castRay(
     origin: THREE.Vector3Like,
     dir: THREE.Vector3Like,
     maxDistance: number,
     exclude?: RAPIER.RigidBody,
+    groups?: number,
   ): number | null {
     const hit = this.world.castRay(
       new RAPIER.Ray(origin, dir),
       maxDistance,
       true,
       undefined,
-      undefined,
+      groups,
       undefined,
       exclude,
     );

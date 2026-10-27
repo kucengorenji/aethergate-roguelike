@@ -1,15 +1,39 @@
 import { grayboxArena } from '../arenas/graybox';
 import { config } from '../config';
 import { resetPlayer } from '../entities/player';
-import type { GameSystem } from '../types';
+import type { Ctx, GameSystem } from '../types';
 
-/** R resets the player to spawn; falling out of the world does too. */
+/** R restarts the encounter at any time; falling out of the world resets the player. */
 export const restartSystem: GameSystem = (ctx) => {
-  const reset = ctx.input.wasPressed('KeyR');
+  if (ctx.input.wasPressed('KeyR')) {
+    restartEncounter(ctx);
+    return;
+  }
   for (const player of ctx.world.with('player', 'body')) {
-    if (reset || player.body.translation().y < config.player.respawnBelowY) {
+    if (player.body.translation().y < config.player.respawnBelowY) {
       resetPlayer(ctx, player, grayboxArena);
-      ctx.state.elapsed = 0;
     }
   }
 };
+
+/** Full health, focus and flasks, no projectiles, dummies and totems reset. */
+export function restartEncounter(ctx: Ctx): void {
+  const { state } = ctx;
+  for (const player of ctx.world.with('player')) resetPlayer(ctx, player, grayboxArena);
+  for (const { dummy, health, model } of ctx.world.with('dummy', 'health')) {
+    health.current = health.max;
+    Object.assign(dummy, { offset: { x: 0, z: 0 }, velocity: { x: 0, z: 0 }, downTime: 0 });
+    if (model) model.rotation.x = 0;
+  }
+  for (const { totem } of ctx.world.with('totem')) {
+    totem.timer = config.totem.interval;
+    totem.charge = 0;
+  }
+  state.projectiles.clear();
+  state.impacts.length = 0;
+  state.damageNumbers.length = 0;
+  Object.assign(state.feedback, { hitstop: 0, kick: 0, shake: 0, hurt: 0 });
+  state.phase = 'playing';
+  state.elapsed = 0;
+  ctx.timeScale = 1;
+}

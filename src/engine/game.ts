@@ -21,8 +21,16 @@ export interface GameContext<E extends CoreComponents, S> {
   readonly scene: THREE.Scene;
   readonly camera: THREE.PerspectiveCamera;
   readonly rng: Rng;
-  /** Seconds this system call covers: the fixed step for fixed systems, the frame time for frame systems. */
+  /**
+   * Seconds this system call covers: the fixed step times `timeScale` for fixed
+   * systems, the frame time for frame systems.
+   */
   dt: number;
+  /**
+   * Multiplies simulated time per fixed step (physics, systems, animators), e.g.
+   * near 0 for a few steps of hitstop. Steps, ticks and input edges are unaffected.
+   */
+  timeScale: number;
   /** Number of fixed steps simulated so far. */
   tick: number;
   /**
@@ -103,6 +111,7 @@ export class Game<E extends CoreComponents, S> {
       camera,
       rng: new Rng(options.params.seed),
       dt: 0,
+      timeScale: 1,
       tick: 0,
       alpha: 1,
       snap: (entity) => {
@@ -171,7 +180,7 @@ export class Game<E extends CoreComponents, S> {
   private step(): void {
     const start = performance.now();
     const { ctx } = this;
-    ctx.dt = this.fixedStep.stepSeconds;
+    ctx.dt = this.fixedStep.stepSeconds * ctx.timeScale;
     ctx.input.beginStep();
     for (const system of this.fixedSystems) system(ctx);
     ctx.physics.step(ctx.dt);

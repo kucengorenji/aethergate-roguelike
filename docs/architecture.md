@@ -64,6 +64,19 @@ Mouse movement and mouse buttons only count while locked, so the click that lock
 `input.look` holds the mouse movement for the current fixed step; buttons are `Mouse0` (left) and `Mouse2` (right) in `isDown` and `wasPressed`.
 Tests cannot rely on real pointer lock, so the test hook has built-in actions: `act('pointerLock', 1)` and `act('look', dx, dy)`.
 
+## Time scale and hitstop
+
+`ctx.timeScale` multiplies the simulated time of a fixed step (systems, physics, animators).
+Hitstop sets it near zero for a few steps after a hit; step count, ticks and input edges are unaffected, so tests stay deterministic.
+Effects that should keep running during hitstop (camera shake, flashes, damage numbers) decay with the real step time instead of `ctx.dt`.
+
+## Projectiles and hits
+
+Projectiles live in a pooled struct-of-arrays (`src/game/combat/projectiles.ts`), not in the ECS, and render with one instanced mesh per kind.
+Each step a projectile sweeps from its previous to its new position: a ray against level geometry and a swept sphere-versus-capsule test against hurtboxes.
+Actor colliders (player, dummy, later enemies) use the `ACTOR_GROUPS` collision group, and level rays use `WORLD_RAYS`, so the camera and projectiles ignore actors' physics shapes and hit them through hurtboxes instead.
+Crosshair aim and the camera share one pure function (`cameraRig`), so bolts go exactly where the crosshair points.
+
 ## Audio
 
 `ctx.audio` creates its AudioContext on the first click or key press (browser autoplay rules).

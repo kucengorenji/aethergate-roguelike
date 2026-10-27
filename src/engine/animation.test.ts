@@ -96,4 +96,35 @@ describe('Animator', () => {
       new Animator(mesh, clips).play('dance');
     }).toThrow(/dance/);
   });
+
+  it('adds a layer on top of the base clip and fades it out', () => {
+    const { mesh, arm, clips } = skinnedRig();
+    const lift = new THREE.AnimationClip('lift', 1, [
+      new THREE.QuaternionKeyframeTrack(
+        'arm.quaternion',
+        [0],
+        new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 4).toArray(),
+      ),
+    ]);
+    const animator = new Animator(mesh, [clips[1]!], [lift]);
+    animator.play('rest', 0);
+    animator.setLayer('lift', 1, 0.1);
+    animator.update(0.2);
+    expect(animator.layerWeight('lift')).toBe(1);
+    expect(2 * Math.acos(Math.min(1, arm.quaternion.w))).toBeCloseTo(Math.PI / 4, 2);
+    animator.setLayer('lift', 0, 0.1);
+    animator.update(0.05);
+    expect(animator.layerWeight('lift')).toBeCloseTo(0.5);
+    animator.update(0.1);
+    expect(arm.quaternion.w).toBeCloseTo(1);
+  });
+
+  it('holds the last frame of a clip played once', () => {
+    const { mesh, arm, clips } = skinnedRig();
+    const animator = new Animator(mesh, clips);
+    animator.play('raise', 0, 1, true);
+    animator.update(3);
+    const angle = 2 * Math.acos(Math.min(1, Math.abs(arm.quaternion.w)));
+    expect(angle).toBeCloseTo(Math.PI / 2, 2);
+  });
 });

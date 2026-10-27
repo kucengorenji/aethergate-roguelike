@@ -8,7 +8,11 @@ import { config } from '../config';
  *
  * The root's origin is at the feet, facing -z. Total height is about 1.8 m.
  */
-export function createMannequin(): { root: THREE.Group; clips: THREE.AnimationClip[] } {
+export function createMannequin(): {
+  root: THREE.Group;
+  clips: THREE.AnimationClip[];
+  layers: THREE.AnimationClip[];
+} {
   const root = new THREE.Group();
   root.name = 'mannequin';
 
@@ -23,6 +27,11 @@ export function createMannequin(): { root: THREE.Group; clips: THREE.AnimationCl
     const arm = joint(side < 0 ? 'armL' : 'armR', spine, side * 0.26, 0.52, 0);
     part(arm, geometries.arm, materials.robe, 0, -0.27, 0);
     part(arm, geometries.hand, materials.skin, 0, -0.56, 0);
+    if (side > 0) {
+      // The staff runs along the arm, so raising the arm forward points it at the target.
+      part(arm, geometries.staff, materials.staff, 0, -0.75, 0);
+      part(arm, geometries.staffGem, materials.staffGem, 0, -1.37, 0);
+    }
     const leg = joint(side < 0 ? 'legL' : 'legR', hips, side * 0.11, 0, 0);
     part(leg, geometries.leg, materials.hood, 0, -0.46, 0);
   }
@@ -30,7 +39,11 @@ export function createMannequin(): { root: THREE.Group; clips: THREE.AnimationCl
   // Gold sash so facing is readable from behind.
   part(spine, geometries.sash, materials.accent, 0, 0.04, 0);
 
-  return { root, clips: [idleClip(), runClip()] };
+  return {
+    root,
+    clips: [idleClip(), runClip(), dodgeClip()],
+    layers: [aimLayer(), bashLayer(), drinkLayer()],
+  };
 }
 
 const HIP_Y = 0.95;
@@ -45,6 +58,8 @@ const geometries = {
   leg: new THREE.BoxGeometry(0.13, 0.9, 0.14),
   skirt: new THREE.CylinderGeometry(0.2, 0.36, 0.72, 8, 1, true),
   sash: new THREE.BoxGeometry(0.44, 0.06, 0.28),
+  staff: new THREE.CylinderGeometry(0.025, 0.03, 1.15, 6),
+  staffGem: new THREE.OctahedronGeometry(0.07),
 };
 const materials = {
   robe: new THREE.MeshStandardMaterial({
@@ -58,6 +73,12 @@ const materials = {
     color: config.colors.accent,
     roughness: 0.4,
     metalness: 0.6,
+  }),
+  staff: new THREE.MeshStandardMaterial({ color: 0x4a3828, roughness: 0.8 }),
+  staffGem: new THREE.MeshStandardMaterial({
+    color: config.colors.bolt,
+    emissive: config.colors.bolt,
+    emissiveIntensity: 1.2,
   }),
 };
 
@@ -140,5 +161,49 @@ function runClip(): THREE.AnimationClip {
     rot('legR', 'x', t, [swing, 0, -swing, 0, swing]),
     rot('armL', 'x', t, [arm, 0, -arm, 0, arm]),
     rot('armR', 'x', t, [-arm, 0, arm, 0, -arm]),
+  ]);
+}
+
+/** A forward roll over the dodge duration: hips tumble once, legs tuck, body drops low. */
+function dodgeClip(): THREE.AnimationClip {
+  const d = config.dodge.duration;
+  const t = [0, d * 0.25, d * 0.5, d * 0.75, d];
+  const turn = -Math.PI / 2;
+  return new THREE.AnimationClip('dodge', d, [
+    hipHeight(t, [-0.15, -0.45, -0.5, -0.4, -0.05]),
+    rot('hips', 'x', t, [0, turn, 2 * turn, 3 * turn, 4 * turn]),
+    rot('legL', 'x', t, [0.6, 1.4, 1.4, 1.2, 0.2]),
+    rot('legR', 'x', t, [0.4, 1.3, 1.4, 1.2, 0.1]),
+    rot('armL', 'x', t, [0.5, 1, 1, 0.8, 0.2]),
+    rot('armR', 'x', t, [0.5, 1, 1, 0.8, 0.2]),
+  ]);
+}
+
+/**
+ * Additive layers: keyframes are rotations relative to the rest pose, applied on
+ * top of whatever the legs are doing.
+ */
+function aimLayer(): THREE.AnimationClip {
+  return new THREE.AnimationClip('aim', 1, [
+    rot('armR', 'x', [0], [1.45]),
+    rot('spine', 'x', [0], [-0.05]),
+  ]);
+}
+
+function bashLayer(): THREE.AnimationClip {
+  const d = config.bash.duration;
+  const t = [0, d * 0.25, d * 0.45, d];
+  return new THREE.AnimationClip('bash', d, [
+    rot('armR', 'x', t, [0.4, 2.7, 0.9, 0]),
+    rot('spine', 'x', t, [0, 0.12, -0.3, 0]),
+  ]);
+}
+
+function drinkLayer(): THREE.AnimationClip {
+  const d = config.flask.duration;
+  const t = [0, d * 0.3, d * 0.75, d];
+  return new THREE.AnimationClip('drink', d, [
+    rot('armL', 'x', t, [0, 2.3, 2.3, 0]),
+    rot('neck', 'x', t, [0, 0.35, 0.35, 0]),
   ]);
 }

@@ -9,11 +9,26 @@
   <body>
     <canvas id="game"></canvas>
 
+    <div class="hurt" id="hurt" aria-hidden="true"></div>
+    <div class="numbers" id="numbers" aria-hidden="true"></div>
     <div class="crosshair" id="crosshair" aria-hidden="true"></div>
 
+    <div class="vitals" aria-label="Player status">
+      <div class="bar hp" role="meter" aria-label="Health">
+        <i id="hp-fill"></i><span id="hp-text">100</span>
+      </div>
+      <div class="bar focus" role="meter" aria-label="Focus"><i id="focus-fill"></i></div>
+      <div class="flasks" id="flasks"></div>
+    </div>
+
     <div class="controls">
-      <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · <kbd>Mouse</kbd> look ·
-      <kbd>R</kbd> reset · <kbd>Esc</kbd> release mouse · <kbd>`</kbd> debug
+      <kbd>WASD</kbd> move · <kbd>LMB</kbd> cast · <kbd>Space</kbd> dodge · <kbd>F</kbd> bash ·
+      <kbd>Q</kbd> flask · <kbd>R</kbd> restart · <kbd>Esc</kbd> release mouse
+    </div>
+
+    <div class="death" id="death" hidden>
+      <h1>You fell</h1>
+      <p>Press <kbd>R</kbd> to rise again</p>
     </div>
 
     <div class="lock-prompt" id="lock-prompt">

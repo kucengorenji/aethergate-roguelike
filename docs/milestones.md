@@ -44,12 +44,12 @@ The starter has no mouse input, no animation and no audio, and a TPS needs all t
 
 Weeks: 2
 
-- [ ] Pooled projectiles and the primary staff spell with focus (mana).
-- [ ] Dodge roll with i-frames, emergency melee bash.
-- [ ] Hitbox and hurtbox model, health, damage, death.
-- [ ] Hit feedback: hitstop, flash, damage numbers, camera kick, placeholder SFX.
-- [ ] A training dummy, and a HUD with HP, focus and flask.
-- [ ] **Exit:** shooting the dummy feels satisfying for 2 minutes with graybox art and no enemies.
+- [x] Pooled projectiles and the primary staff spell with focus (mana) (spec 0003).
+- [x] Dodge roll with i-frames, emergency melee bash.
+- [x] Hitbox and hurtbox model, health, damage, death.
+- [x] Hit feedback: hitstop, flash, damage numbers, camera kick, placeholder SFX.
+- [x] A training dummy, and a HUD with HP, focus and flask.
+- [~] **Exit:** shooting the dummy feels satisfying for 2 minutes with graybox art and no enemies.
 
 ## M3: Enemies and combat rooms
 

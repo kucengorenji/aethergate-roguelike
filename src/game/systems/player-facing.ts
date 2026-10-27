@@ -4,9 +4,13 @@ import type { GameSystem } from '../types';
 /**
  * Turns the model to the look direction every rendered frame (frame system),
  * including mouse movement not yet consumed, so it stays locked to the camera.
+ * During a dodge roll it faces the roll direction instead.
  */
 export const playerFacingSystem: GameSystem = ({ world, input }) => {
-  for (const { model, look } of world.with('player', 'model', 'look')) {
-    model.rotation.y = look.yaw - input.pendingLook.x * config.look.sensitivity;
+  for (const { model, look, action } of world.with('player', 'model', 'look')) {
+    model.rotation.y =
+      action?.kind === 'dodge'
+        ? Math.atan2(-action.dirX, -action.dirZ)
+        : look.yaw - input.pendingLook.x * config.look.sensitivity;
   }
 };

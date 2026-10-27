@@ -28,3 +28,26 @@ test('simulation step stays within the CPU budget', async ({ page }) => {
   expect(stats.avg).toBeLessThanOrEqual(budget.maxAvgStepMs);
   expect(stats.p95).toBeLessThanOrEqual(budget.maxP95StepMs);
 });
+
+test('200 projectiles stay within the CPU budget', async ({ page }) => {
+  await openGame(page, 'test&seed=1');
+  await page.evaluate(() => {
+    window.__game!.act('spawnProjectiles', 200);
+  });
+  await page.waitForTimeout(500);
+  await page.evaluate(() => {
+    window.__game!.resetStepTimes();
+  });
+  await page.waitForTimeout(3000);
+  const stats = await page.evaluate(() => window.__game!.stepTimes());
+  const live = await page.evaluate(
+    () => (window.__game!.inspect() as { projectiles: number }).projectiles,
+  );
+  console.log(
+    `200 projectiles, step ms: avg ${stats.avg.toFixed(3)}, p95 ${stats.p95.toFixed(3)}, max ${stats.max.toFixed(3)} over ${stats.count} steps, ${live} live`,
+  );
+  expect(live).toBeGreaterThan(150);
+  expect(stats.count).toBeGreaterThan(60);
+  expect(stats.avg).toBeLessThanOrEqual(budget.maxAvgStepMs);
+  expect(stats.p95).toBeLessThanOrEqual(budget.maxP95StepMs);
+});
