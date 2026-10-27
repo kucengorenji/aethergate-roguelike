@@ -7,6 +7,7 @@ See `docs/workflows/progress.md`.
 
 ## 2026-10-27
 
+- M6: VFX built (spec 0014): pooled particles from a cosmetic fixed system with its own seed, trails, impacts, comet, auras, ice shells, hit sparks, spawn and death, telegraph decals, meteors, burning edge, ash, bloom and grade; total bundle 1,542 of 1,600 KB, entry 36.8 KB.
 - M6: Started VFX in code on branch `feat/m6-vfx`: spec 0014 and plan 0014 written (particles as a cosmetic fixed system with its own seeded stream, telegraph decals as data, bloom and grade in an engine post pipeline, lazy VFX chunk).
 - M6: Codex delivered the four Round A frames (hall, combat, boss, lineup), committed as 1280px WebP; Antigravity produced none (stuck on a permission dialog).
 - M5: Spec 0010 done: the Kindled Hall (grace site, altar of six upgrades, staff rack with Lance and Scatter), shards banked after every run, boss shard drops, Abandon run in the pause menu. Verify green, 166 unit and 109 E2E tests. M5 exit check waits for a playtest.
