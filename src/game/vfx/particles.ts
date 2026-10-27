@@ -63,6 +63,7 @@ export class ParticlePool {
 
   /** Frees every particle whose life ended by `now`. */
   expire(now: number): void {
+    if (this.live === 0) return;
     for (let i = 0; i < this.capacity; i++) {
       if (this.alive[i] && now - this.born[i]! >= this.life[i]!) this.release(i);
     }

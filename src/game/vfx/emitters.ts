@@ -8,6 +8,7 @@ import {
   burst,
   coneDirection,
   emitOne,
+  full,
   rollCount,
   type Emitter,
   type Recipe,
@@ -56,6 +57,7 @@ function radial(
   from = 0,
   count = recipe.count ?? 1,
 ): void {
+  if (full(e)) return;
   const n = rollCount(e, count);
   const [lo, hi] = recipe.speed ?? [0, 0];
   for (let k = 0; k < n; k++) {
@@ -92,6 +94,7 @@ function implode(
   radius: number,
   scale: number,
 ): void {
+  if (full(e)) return;
   const n = rollCount(e, recipe.count ?? 1);
   const [lo, hi] = recipe.speed ?? [0, 0];
   for (let k = 0; k < n; k++) {
@@ -127,6 +130,7 @@ function around(
   rate: number,
   scale = 1,
 ): void {
+  if (full(e)) return;
   const n = rollCount(e, rate);
   const [lo, hi] = recipe.speed ?? [0, 0];
   for (let k = 0; k < n; k++) {
@@ -341,17 +345,18 @@ export function trailEffect(
   primary: Element | null,
   skill: Element | null,
 ): void {
+  // Hundreds of shots can be in the air: once the pool is full, skip the work.
+  if (full(e)) return;
   const comet = kind === ProjectileKind.Comet;
   linear(trailColor(kind, look, primary, skill), rgb);
   const recipe = bursts().mote;
   const tag = comet ? TAG.comet : TAG.trail;
   const scale = comet ? 2.2 : kind === ProjectileKind.Orb ? 1.5 : 1;
   const n = rollCount(e, trailSpec(kind, look).motes);
-  const [lo, hi] = recipe.speed;
+  // Motes only drift a little, so a random velocity in a box is round enough.
+  const drift = recipe.speed[1] * 2;
   for (let k = 0; k < n; k++) {
     const t = e.rng.next();
-    coneDirection(e.rng, 0, 1, 0, Math.PI, dir);
-    const speed = e.rng.range(lo, hi);
     emitOne(
       e,
       tag,
@@ -360,9 +365,9 @@ export function trailEffect(
       ax + (bx - ax) * t,
       ay + (by - ay) * t,
       az + (bz - az) * t,
-      dir.x * speed,
-      dir.y * speed,
-      dir.z * speed,
+      (e.rng.next() - 0.5) * drift,
+      (e.rng.next() - 0.5) * drift,
+      (e.rng.next() - 0.5) * drift,
       scale,
     );
   }
@@ -617,7 +622,7 @@ export function auraEffect(
   if (status.frozen > 0) {
     around(e, TAG.frozen, b.aura, linear(c.ice, rgb), x, bottom, z, radius, height, a.frozen, 1.4);
   }
-  if (status.weight > 0) {
+  if (status.weight > 0 && !full(e)) {
     linear(c.gravity, rgb);
     const n = rollCount(e, a.weight * status.weight);
     const [lo, hi] = b.falling.speed;

@@ -3,7 +3,7 @@ import type { EnemyState, Entity } from '../components';
 import { config } from '../config';
 import { enemyGlowColor } from '../entities/enemy';
 import { effectsProfile } from '../quality';
-import type { GameSystem } from '../types';
+import type { Ctx, GameSystem } from '../types';
 import {
   arcEffect,
   auraEffect,
@@ -35,9 +35,11 @@ export function createVfxSystem(): GameSystem {
   // What each enemy was doing last step, to catch spawns and deaths as they start.
   const seenState = new WeakMap<Entity, EnemyState>();
   let layout: unknown = null;
+  let queries: ReturnType<typeof makeQueries> | null = null;
 
   return (ctx) => {
-    const { state, dt, world } = ctx;
+    const { state, dt } = ctx;
+    const { players, enemies, dummies } = (queries ??= makeQueries(ctx.world));
     const vfx = state.vfx;
     vfx.clock += dt;
     vfx.stepDt = dt;
@@ -49,7 +51,7 @@ export function createVfxSystem(): GameSystem {
     }
     vfx.particles.expire(vfx.clock);
 
-    const player = world.with('player', 'boons', 'skill').first;
+    const player = players.first;
     const primary = primaryElement(player?.boons.held);
     const skill = player?.skill.element ?? null;
 
@@ -88,7 +90,7 @@ export function createVfxSystem(): GameSystem {
     state.hits.length = 0;
     for (const a of state.arcs) if (a.age === 0) arcEffect(vfx, a.x2, a.y2, a.z2);
 
-    for (const entity of world.with('enemy', 'body', 'hurtbox')) {
+    for (const entity of enemies) {
       const { enemy, hurtbox, status } = entity;
       const before = seenState.get(entity);
       seenState.set(entity, enemy.state);
@@ -108,7 +110,7 @@ export function createVfxSystem(): GameSystem {
       }
     }
 
-    for (const { body, hurtbox, status } of world.with('dummy', 'body', 'hurtbox', 'status')) {
+    for (const { body, hurtbox, status } of dummies) {
       const p = body.translation();
       auraEffect(vfx, status, p.x, p.y, p.z, hurtbox.radius, hurtbox.halfHeight);
     }
@@ -119,5 +121,14 @@ export function createVfxSystem(): GameSystem {
       }
     }
     if (state.burnRing !== null) flamesEffect(vfx, state.burnRing);
+  };
+}
+
+/** The queries the system reads every step, built once (looking them up costs per call). */
+function makeQueries(world: Ctx['world']) {
+  return {
+    players: world.with('player', 'boons', 'skill'),
+    enemies: world.with('enemy', 'body', 'hurtbox'),
+    dummies: world.with('dummy', 'body', 'hurtbox', 'status'),
   };
 }

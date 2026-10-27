@@ -37,6 +37,11 @@ const dir = { x: 0, y: 0, z: 0 };
 const offset = { x: 0, y: 0, z: 0 };
 const NO_SPEED = [0, 0] as const;
 
+/** Whether the pool is full: emitters skip their random draws instead of dropping every particle. */
+export function full(e: Emitter): boolean {
+  return e.particles.count >= e.particles.capacity;
+}
+
 /** Particles a recipe spawns at this density; the fractional part is rolled. */
 export function rollCount(e: Emitter, count: number): number {
   const n = count * e.density;
@@ -112,6 +117,7 @@ export function burst(
   jitter = 0,
   count = recipe.count ?? 1,
 ): number {
+  if (full(e)) return 0;
   const n = rollCount(e, count);
   const [lo, hi] = recipe.speed ?? NO_SPEED;
   const spread = recipe.spread ?? Math.PI;

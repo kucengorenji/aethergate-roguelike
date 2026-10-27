@@ -3,11 +3,23 @@ import type { Element } from '../components';
 import { config } from '../config';
 import type { Rgb } from './emit';
 
+/** Converted colors: effects ask for the same few dozen every step. */
+const cache = new Map<number, Rgb>();
+
 /** sRGB hex to linear RGB, the space particles and shaders mix light in. */
 export function linear(hex: number, out: Rgb): Rgb {
-  out.r = toLinear(((hex >> 16) & 255) / 255);
-  out.g = toLinear(((hex >> 8) & 255) / 255);
-  out.b = toLinear((hex & 255) / 255);
+  let c = cache.get(hex);
+  if (!c) {
+    c = {
+      r: toLinear(((hex >> 16) & 255) / 255),
+      g: toLinear(((hex >> 8) & 255) / 255),
+      b: toLinear((hex & 255) / 255),
+    };
+    cache.set(hex, c);
+  }
+  out.r = c.r;
+  out.g = c.g;
+  out.b = c.b;
   return out;
 }
 
