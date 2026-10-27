@@ -6,12 +6,12 @@ import { ACTOR_GROUPS } from '../combat/groups';
 import type { Entity } from '../components';
 import { config } from '../config';
 import type { Ctx } from '../types';
-import { createMannequin } from './mannequin';
+import type { PlayerModel } from './player-model';
 
 /** Height of the capsule center above the floor. */
 export const PLAYER_CENTER_Y = config.player.halfHeight + config.player.radius;
 
-export function spawnPlayer(ctx: Ctx, layout: ArenaLayout): Entity {
+export function spawnPlayer(ctx: Ctx, layout: ArenaLayout, playerModel: PlayerModel): Entity {
   const { radius, halfHeight, stepHeight } = config.player;
   const { x, z, yaw } = layout.spawn;
   const body = ctx.physics.world.createRigidBody(
@@ -27,7 +27,7 @@ export function spawnPlayer(ctx: Ctx, layout: ArenaLayout): Entity {
   controller.setMaxSlopeClimbAngle((50 * Math.PI) / 180);
   controller.setApplyImpulsesToDynamicBodies(true);
 
-  const { root: model, clips, layers } = createMannequin();
+  const { root: model, clips, layers } = playerModel;
   model.position.y = -PLAYER_CENTER_Y;
   model.rotation.y = yaw;
   const object3d = new THREE.Group();

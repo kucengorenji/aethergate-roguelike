@@ -1,5 +1,6 @@
 import * as THREE from 'three/webgpu';
 import { config } from '../config';
+import { playerMaterials } from './player-materials';
 
 /**
  * A procedural robed figure with named joints, plus idle and run clips that
@@ -61,26 +62,7 @@ const geometries = {
   staff: new THREE.CylinderGeometry(0.025, 0.03, 1.15, 6),
   staffGem: new THREE.OctahedronGeometry(0.07),
 };
-const materials = {
-  robe: new THREE.MeshStandardMaterial({
-    color: config.colors.robe,
-    roughness: 0.9,
-    side: THREE.DoubleSide,
-  }),
-  hood: new THREE.MeshStandardMaterial({ color: config.colors.hood, roughness: 0.95 }),
-  skin: new THREE.MeshStandardMaterial({ color: config.colors.skin, roughness: 0.7 }),
-  accent: new THREE.MeshStandardMaterial({
-    color: config.colors.accent,
-    roughness: 0.4,
-    metalness: 0.6,
-  }),
-  staff: new THREE.MeshStandardMaterial({ color: 0x4a3828, roughness: 0.8 }),
-  staffGem: new THREE.MeshStandardMaterial({
-    color: config.colors.bolt,
-    emissive: config.colors.bolt,
-    emissiveIntensity: 1.2,
-  }),
-};
+const materials = playerMaterials;
 
 function joint(
   name: string,
