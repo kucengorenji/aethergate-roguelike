@@ -10,6 +10,7 @@ src/
     fixed-step.ts    fixed-timestep accumulator
     physics.ts       Rapier world wrapper, ray casts, debug wireframe
     renderer.ts      WebGPURenderer with WebGL 2 fallback
+    post.ts          post-processing: bloom and a color grade (node based, both backends)
     input.ts         keyboard, mouse buttons, pointer lock, mouse look per step
     interpolation.ts blends bodies between the last two steps when rendering
     animation.ts     Animator: named clips with cross-fades (fixed-step updated)
@@ -28,6 +29,7 @@ src/
     state.ts         non-entity game state
     entities/        factories that build bodies and meshes and add entities
     systems/         one file per system
+    vfx/             effects: particle pool, emitters, telegraph decals, TSL materials (lazy chunk)
     ui/              DOM HUD
 ```
 
@@ -38,8 +40,8 @@ Each animation frame:
 1. The fixed-step accumulator decides how many 1/60 s steps to run (at most 5 after a stall).
 2. For each step: consume mouse look, run fixed systems in registration order, step physics, advance animators, capture body transforms, clear input edges.
 3. Blend each body's `object3d` between the last two captured steps by `alpha` (the leftover fraction of a step; 1 while paused).
-4. Run frame systems once (camera, model facing, HUD).
-5. Render.
+4. Run frame systems once (camera, model facing, effects, HUD).
+5. Render: the plain scene render, or the pass set with `Game.setRenderPass` (the post-processing chain).
 
 Because `object3d` holds the blended, rendered transform, fixed systems read positions from `body`, never from `object3d`.
 Frame systems are pure functions of simulation state, `alpha` and not-yet-consumed mouse movement (`input.pendingLook`), and never change gameplay state.
@@ -83,7 +85,7 @@ Crosshair aim and the camera share one pure function (`cameraRig`), so bolts go 
 
 Each enemy has one `enemy` component with its kind, AI state and timers.
 The decision logic is a pure function (`src/game/ai/brains.ts`) from a small view of the world to the next state and a desired velocity, so it is unit-tested without Rapier.
-Systems run it (`enemy-ai`), move enemies through one shared character controller with separation steering (`enemy-motion`), resolve attacks (`enemy-attack`) and remove the dead (`enemy-death`); a frame system presents poses, glows and ground markers from the state (`enemy-pose`).
+Systems run it (`enemy-ai`), move enemies through one shared character controller with separation steering (`enemy-motion`), resolve attacks (`enemy-attack`) and remove the dead (`enemy-death`); a frame system presents poses and glows from the state (`enemy-pose`), and telegraph decals are drawn from the same state (see Effects).
 Enemies collide with the level and the player but not with each other (`ENEMY_GROUPS`), because overlapping capsules lock the character controller.
 
 ## Runs and rooms
@@ -95,7 +97,28 @@ The environment (sky, lights, fog) is built once; each room's geometry, doors an
 ## Bosses and hazards
 
 Bosses are enemy kinds (`captain`, `starfallen`) with a pure pattern brain (`src/game/ai/bosses.ts`): the move per phase and pattern, wind-ups per phase, and the closing ring's radius.
-The AI system handles phase changes; the attack system resolves each move; timed area hazards (meteors, the burning ring) live in `state.hazards` and `state.burnRing`, ticked by `systems/hazards.ts` and drawn by `systems/hazard-render.ts`.
+The AI system handles phase changes; the attack system resolves each move; timed area hazards (meteors, the burning ring) live in `state.hazards` and `state.burnRing`, ticked by `systems/hazards.ts` and drawn as decals, falling meteors and flames (see Effects).
+
+## Effects (spec 0014)
+
+Effects are cosmetic and never feed back into gameplay.
+Gameplay code only leaves records behind, like it already did for impacts: `state.impacts` (with a kind, an optional `look` and `radius`), `state.arcs`, and `state.hits` (where a blow landed or was blocked), plus a cosmetic `look` per projectile (the staff, or a thorn orb).
+`vfxSystem` is a cosmetic fixed system registered just before `feedbackSystem`, so new impacts and arcs still have age 0.
+It turns those records, projectiles, enemy states (first seen rising, turning to dying), statuses, falling meteors and the burning ring into particles.
+Its randomness comes from `state.vfx.rng`, a second `Rng` seeded from the launch seed with a salt, so `ctx.rng` and every seeded outcome stay the same at any quality.
+
+Particles live in a pooled struct-of-arrays (`vfx/particles.ts`) that stores only how each one started; its position at any age is closed-form (drag and gravity), so the fixed step only spawns and frees.
+The effects clock advances with `ctx.dt`, so sparks hold still during hitstop like the rest of the world.
+Frame systems after `tpsCameraSystem` draw everything at the blended time, one instanced draw each: particles, trails and lightning (ribbons), ground decals, ice shells, falling meteors and ash.
+Camera-facing quads are built on the CPU from `camera.quaternion`, because the camera's world matrix only updates when the frame renders.
+The materials are TSL (`vfx/materials.ts`) with per-instance attributes and premultiplied blending, so glowing and smoky particles share a draw call.
+
+Telegraphs are data: `vfx/telegraphs.ts` turns an enemy's state into decals whose fill reaches the rim on the last step before the strike, and `collectDecals` gathers them with meteors, the burning edge and shockwaves; `inspect().vfx.decals` returns the same list.
+Ash is a pure function of the effects clock and the player's position (`vfx/ash.ts`), so nothing is simulated.
+
+`src/engine/post.ts` renders the scene into an HDR target, adds bloom above a luminance threshold (effect colors are pushed above 1 by `config.vfx.glow`), tone maps, then grades in display space.
+The `post` frame system applies `config.vfx.post` and the quality setting each frame; Low turns bloom off, and `config.quality` also scales particle density and ash.
+The effects code is a lazily imported chunk (`src/game/vfx/index.ts`) that `createGame` starts loading early.
 
 ## Save data and panels
 
