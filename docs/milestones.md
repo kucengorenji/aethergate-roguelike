@@ -59,7 +59,7 @@ Weeks: 3
 - [x] Hollow Soldier, Thorn Caster, Ward Knight, Rot Hound.
 - [x] Wave spawner and a room clear condition.
 - [x] Player death and a restart.
-- [~] **Exit:** a single arena with 3 waves is tense, readable and fair.
+- [x] **Exit:** a single arena with 3 waves is tense, readable and fair.
 
 ## M4: Run structure and boons
 
