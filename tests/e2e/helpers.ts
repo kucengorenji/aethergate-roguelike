@@ -54,6 +54,10 @@ export interface Snapshot {
     settings: { sensitivity: number; volume: number; quality: string };
     stats: { runs: number; wins: number; bestTime: number | null };
   };
+  /** Settings as the running game uses them (look sensitivity, master volume). */
+  settings: { sensitivity: number; volume: number };
+  /** What the renderer and the sun use right now. */
+  render: { pixelRatio: number; shadows: boolean; shadowMapSize: number };
   layout: string;
   run: {
     seed: number | null;

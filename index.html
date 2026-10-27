@@ -65,6 +65,60 @@
       <p class="lock-hint">The mouse controls the camera. Press <kbd>Esc</kbd> to release it.</p>
     </div>
 
+    <div class="menu" id="menu" hidden>
+      <section class="menu-panel menu-title" data-panel="title" aria-labelledby="menu-name">
+        <h1 id="menu-name">Aethergate</h1>
+        <p class="menu-tagline">Carry the last light through the fog-drowned ruins.</p>
+        <div class="menu-buttons">
+          <button type="button" class="primary" data-action="begin">Begin</button>
+          <button type="button" data-action="settings">Settings</button>
+        </div>
+      </section>
+
+      <section
+        class="menu-panel menu-card"
+        data-panel="pause"
+        role="dialog"
+        aria-labelledby="menu-paused"
+      >
+        <h2 id="menu-paused">Paused</h2>
+        <div class="menu-buttons">
+          <button type="button" class="primary" data-action="resume">Resume</button>
+          <button type="button" data-action="settings">Settings</button>
+        </div>
+      </section>
+
+      <section
+        class="menu-panel menu-card"
+        data-panel="settings"
+        role="dialog"
+        aria-labelledby="menu-settings"
+      >
+        <h2 id="menu-settings">Settings</h2>
+        <div class="setting">
+          <label for="set-sensitivity">Mouse sensitivity</label>
+          <input type="range" id="set-sensitivity" min="25" max="250" step="5" />
+          <output for="set-sensitivity" id="out-sensitivity"></output>
+        </div>
+        <div class="setting">
+          <label for="set-volume">Volume</label>
+          <input type="range" id="set-volume" min="0" max="100" step="5" />
+          <output for="set-volume" id="out-volume"></output>
+        </div>
+        <div class="setting" role="radiogroup" aria-labelledby="quality-label">
+          <span id="quality-label">Quality</span>
+          <div class="segmented">
+            <label><input type="radio" name="quality" value="low" /><span>Low</span></label>
+            <label><input type="radio" name="quality" value="medium" /><span>Medium</span></label>
+            <label><input type="radio" name="quality" value="high" /><span>High</span></label>
+          </div>
+        </div>
+        <div class="menu-buttons">
+          <button type="button" data-action="back">Back</button>
+        </div>
+      </section>
+    </div>
+
     <div class="fatal" id="fatal" hidden>
       <p>This browser could not start the game (WebGPU or WebGL 2 is required).</p>
       <pre></pre>

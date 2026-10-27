@@ -1,5 +1,6 @@
 import { installDebugOverlay } from '@engine/debug/overlay';
 import { Game } from '@engine/game';
+import type * as THREE from 'three/webgpu';
 import type { LaunchParams } from '@engine/params';
 import { noiseBurst, sweep } from '@engine/synth';
 import { installTestHook } from '@engine/test-hook';
@@ -54,6 +55,8 @@ import { enterRoom, runSystem, startRun } from './systems/run';
 import { tpsCameraSystem } from './systems/tps-camera';
 import { createDamageNumbersSystem } from './ui/damage-numbers';
 import { createHudSystem } from './ui/hud';
+import { createMenus } from './ui/menus';
+import { pauseSystem } from './systems/pause';
 
 /** Composition root: spawn entities, register sounds and systems in order. */
 export async function createGame(
@@ -78,13 +81,17 @@ export async function createGame(
   const { ctx } = game;
   ctx.state.save = save.data;
   useSaveWriter(save.write);
-  applySettings(ctx, config);
 
   ctx.camera.fov = config.camera.fov;
   ctx.camera.updateProjectionMatrix();
   registerSounds(ctx.audio);
 
   spawnEnvironment(ctx);
+  // After the environment, so render quality reaches the sun's shadow.
+  const apply = () => {
+    applySettings(ctx, config, game.renderer);
+  };
+  apply();
   if (mode !== 'run') spawnArena(ctx, grayboxArena);
   const player = spawnPlayer(ctx, grayboxArena, playerModel);
   if (mode === 'run') startRun(ctx, params.seed);
@@ -95,7 +102,13 @@ export async function createGame(
   enemyController.enableAutostep(config.player.stepHeight, 0.2, false);
   enemyController.enableSnapToGround(0.3);
 
+  // Players open the game without a mode and start on the title; tests pick a mode.
+  // The title does not suspend: the first room waits for the pointer lock anyway,
+  // and the character idles behind the menu instead of standing in its bind pose.
+  if (!new URLSearchParams(window.location.search).has('mode')) openPanel(ctx, 'title');
+
   game
+    .addFixedSystem(pauseSystem)
     .addFixedSystem(restartSystem)
     .addFixedSystem(wavesSystem)
     .addFixedSystem(runSystem)
@@ -129,7 +142,8 @@ export async function createGame(
     .addFrameSystem(tpsCameraSystem)
     .addFrameSystem(createDamageNumbersSystem())
     .addFrameSystem(createBoonsUiSystem())
-    .addFrameSystem(createHudSystem());
+    .addFrameSystem(createHudSystem())
+    .addFrameSystem(createMenus(ctx, canvas, apply));
 
   installDebugOverlay(game, ({ gui }) => {
     const p = gui.addFolder('Player');
@@ -191,6 +205,8 @@ export async function createGame(
         panel: ctx.state.panel,
         suspended: ctx.suspended,
         save: structuredClone(ctx.state.save),
+        settings: { sensitivity: config.look.sensitivity, volume: ctx.audio.masterVolume },
+        render: renderQuality(game),
         hazards: ctx.state.hazards.map((h) => ({ ...h })),
         burnRing: ctx.state.burnRing,
         action: action!.kind,
@@ -416,6 +432,22 @@ export async function createGame(
 function readMode(): Mode {
   const mode = new URLSearchParams(window.location.search).get('mode');
   return mode === 'training' || mode === 'sandbox' || mode === 'encounter' ? mode : 'run';
+}
+
+/** What the renderer and the sun actually use, to check quality settings. */
+function renderQuality(game: Game<Entity, GameState>): {
+  pixelRatio: number;
+  shadows: boolean;
+  shadowMapSize: number;
+} {
+  const sun = game.ctx.scene.children.find(
+    (o): o is THREE.DirectionalLight => 'isDirectionalLight' in o,
+  );
+  return {
+    pixelRatio: game.renderer.getPixelRatio(),
+    shadows: sun?.castShadow ?? false,
+    shadowMapSize: sun?.shadow.mapSize.x ?? 0,
+  };
 }
 
 function readModelKind(): PlayerModelKind {
