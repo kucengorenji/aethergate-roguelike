@@ -3,29 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#1a1610" />
+    <meta name="theme-color" content="#6d6352" />
     <title>Aethergate</title>
   </head>
   <body>
     <canvas id="game"></canvas>
 
-    <div class="hud" aria-live="polite">
-      <div class="hud-item">
-        <span class="hud-label">Gems</span><span class="hud-value" id="hud-score">0 / 0</span>
-      </div>
-      <div class="hud-item">
-        <span class="hud-label">Time</span><span class="hud-value" id="hud-time">0.0s</span>
-      </div>
-    </div>
+    <div class="crosshair" id="crosshair" aria-hidden="true"></div>
 
     <div class="controls">
-      <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> roll · <kbd>Space</kbd> jump ·
-      <kbd>R</kbd> restart · <kbd>`</kbd> debug
+      <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · <kbd>Mouse</kbd> look ·
+      <kbd>R</kbd> reset · <kbd>Esc</kbd> release mouse · <kbd>`</kbd> debug
     </div>
 
-    <div class="banner" id="banner" hidden>
-      <h1>All gems collected</h1>
-      <p>Time: <span data-time></span> · Press <kbd>Enter</kbd> to play again</p>
+    <div class="lock-prompt" id="lock-prompt">
+      <p class="lock-title">Click to play</p>
+      <p class="lock-hint">The mouse controls the camera. Press <kbd>Esc</kbd> to release it.</p>
     </div>
 
     <div class="fatal" id="fatal" hidden>

@@ -13,13 +13,13 @@ const budget = (
 // check it manually with the debug overlay on target devices.
 test('simulation step stays within the CPU budget', async ({ page }) => {
   await openGame(page, 'test&seed=1');
-  await page.keyboard.down('ArrowUp');
+  await page.keyboard.down('KeyW');
   await page.waitForTimeout(500);
   await page.evaluate(() => {
     window.__game!.resetStepTimes();
   });
   await page.waitForTimeout(3000);
-  await page.keyboard.up('ArrowUp');
+  await page.keyboard.up('KeyW');
   const stats = await page.evaluate(() => window.__game!.stepTimes());
   console.log(
     `step ms: avg ${stats.avg.toFixed(3)}, p95 ${stats.p95.toFixed(3)}, max ${stats.max.toFixed(3)} over ${stats.count} steps`,

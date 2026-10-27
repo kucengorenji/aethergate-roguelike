@@ -22,4 +22,18 @@ describe('FixedStep', () => {
   it('ignores negative frame times', () => {
     expect(new FixedStep(1 / 60).consume(-1)).toBe(0);
   });
+
+  it('reports the leftover fraction of a step as alpha', () => {
+    const fs = new FixedStep(1 / 60);
+    fs.consume(1.5 / 60);
+    expect(fs.alpha).toBeCloseTo(0.5, 6);
+    fs.consume(0.5 / 60);
+    expect(fs.alpha).toBeCloseTo(0, 6);
+  });
+
+  it('resets alpha after a stall', () => {
+    const fs = new FixedStep(1 / 60, 5);
+    fs.consume(2);
+    expect(fs.alpha).toBe(0);
+  });
 });

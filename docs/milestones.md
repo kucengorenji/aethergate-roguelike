@@ -31,14 +31,14 @@ Weeks: 1
 
 The starter has no mouse input, no animation and no audio, and a TPS needs all three.
 
-- [ ] Mouse input in the engine: pointer lock, mouse delta per fixed step, buttons with edges.
-- [ ] Render interpolation between fixed steps, so the camera does not judder on 120 Hz and 144 Hz screens.
-- [ ] Kinematic character controller (Rapier) with walk and collision.
-- [ ] Over-the-shoulder camera with wall collision push-in and a crosshair.
-- [ ] Skinned animation support in the engine (AnimationMixer as a frame system, driven by gameplay state).
-- [ ] Minimal audio module (Web Audio: one-shot SFX, looping music, master volume).
-- [ ] One graybox arena with cover, replacing the gem demo (spec 0001 marked superseded).
-- [ ] **Exit:** walk around the graybox with a mouse-aimed camera at a smooth 60 fps, and the gem demo is gone.
+- [x] Mouse input in the engine: pointer lock, mouse delta per fixed step, buttons with edges.
+- [x] Render interpolation between fixed steps, so the camera does not judder on 120 Hz and 144 Hz screens.
+- [x] Kinematic character controller (Rapier) with walk and collision.
+- [x] Over-the-shoulder camera with wall collision push-in and a crosshair.
+- [x] Skinned animation support in the engine (AnimationMixer as a frame system, driven by gameplay state).
+- [x] Minimal audio module (Web Audio: one-shot SFX, looping music, master volume).
+- [x] One graybox arena with cover, replacing the gem demo (spec 0001 marked superseded, spec 0002).
+- [~] **Exit:** walk around the graybox with a mouse-aimed camera at a smooth 60 fps, and the gem demo is gone.
 
 ## M2: Combat core
 

@@ -20,7 +20,10 @@ export interface TestHook {
   resetStepTimes: () => void;
   /** Game-specific snapshot (JSON-serializable). */
   inspect: () => unknown;
-  /** Runs a game-specific test action, e.g. act('teleportPlayer', x, y, z). */
+  /**
+   * Runs a test action, e.g. act('teleportPlayer', x, y, z). Built in:
+   * `pointerLock(1 | 0)` simulates pointer lock, `look(dx, dy)` injects mouse movement in pixels.
+   */
   act: (name: string, ...args: number[]) => void;
 }
 
@@ -49,6 +52,16 @@ export function installTestHook<E extends CoreComponents, S>(
       waiters.push(resolve);
     });
 
+  const { input } = game.ctx;
+  const builtIn: Record<string, (...args: number[]) => void> = {
+    pointerLock: (on = 1) => {
+      input.setPointerLocked(on !== 0);
+    },
+    look: (dx = 0, dy = 0) => {
+      input.injectLook(dx, dy);
+    },
+  };
+
   window.__game = {
     ready: true,
     backend: game.backend,
@@ -68,7 +81,7 @@ export function installTestHook<E extends CoreComponents, S>(
     },
     inspect,
     act: (name, ...args) => {
-      const action = actions[name];
+      const action = builtIn[name] ?? actions[name];
       if (!action) throw new Error(`Unknown test action "${name}"`);
       action(...args);
     },

@@ -1,10 +1,10 @@
 import { readLaunchParams } from '@engine/params';
-import { createDemoGame } from '@game/index';
+import { createGame } from '@game/index';
 import './style.css';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#game')!;
 
-createDemoGame(canvas, readLaunchParams())
+createGame(canvas, readLaunchParams())
   .then((game) => {
     game.start();
   })

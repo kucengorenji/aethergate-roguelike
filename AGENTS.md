@@ -13,8 +13,7 @@ Built on a browser game starter: Three.js (WebGPU with WebGL 2 fallback), Rapier
 - Milestones: `docs/milestones.md` (check which milestone is current before starting work)
 - Key decisions: `docs/decisions/0002-tps-roguelike-scope.md`
 
-The `src/game/` folder still holds the starter demo (roll a ball, collect gems) until milestone M1 replaces it.
-Keep `src/engine/` game-agnostic.
+`src/game/` is the game, `src/engine/` stays game-agnostic.
 
 ## Commands
 
@@ -56,17 +55,17 @@ Follow `docs/workflows/progress.md` (Claude Code: the `progress` skill):
 
 - `src/engine/` is game-agnostic and must never import from `src/game/` (enforced by ESLint).
 - Game code uses ECS: **components are plain data** in `src/game/components.ts`, **behavior lives in systems** (`src/game/systems/`, one system per file, one job per system).
-- Entity factories live in `src/game/entities/`. They create the body and mesh and `world.add()` the entity. The engine adds `object3d` to the scene and syncs `body` transforms.
+- Entity factories live in `src/game/entities/`. They create the body and mesh and `world.add()` the entity. The engine adds `object3d` to the scene and renders `body` transforms blended between fixed steps, so game logic reads positions from `body`, never from `object3d`.
 - Game-wide state that is not an entity (score, phase, timers) lives in `src/game/state.ts`.
 - Tunables go in `src/game/config.ts`, never as magic numbers in systems. Expose useful ones in the debug panel in `src/game/index.ts`.
 - System order is registered in `src/game/index.ts`. Order matters: input, then rules, then cosmetics, then camera.
-- **Fixed systems** (`addFixedSystem`) run at 60 Hz and hold all gameplay logic. **Frame systems** (`addFrameSystem`) run once per rendered frame and only do presentation (HUD). Anything that affects gameplay or screenshots must be a fixed system.
+- **Fixed systems** (`addFixedSystem`) run at 60 Hz and hold all gameplay logic. **Frame systems** (`addFrameSystem`) run once per rendered frame and only do presentation (camera, model facing, HUD). They must be pure functions of simulation state, `ctx.alpha` and `input.pendingLook`, and never change gameplay state. Anything else that affects gameplay or screenshots must be a fixed system.
 - Use `ctx.rng` (seeded), never `Math.random()`, in game logic. Use `ctx.dt`, never wall-clock time.
 - See `docs/architecture.md` for the full picture.
 
 ## Performance rules
 
-- Reuse geometries and materials across entities (see `src/game/entities/gem.ts`). Never create them per frame.
+- Reuse geometries and materials across entities (see `src/game/entities/level.ts` and `mannequin.ts`). Never create them per frame.
 - No allocations in hot loops when avoidable: reuse vectors, avoid spreading arrays every step.
 - Heavy or optional code (editors, debug tools, rarely used scenes) is loaded with dynamic `import()`.
 - Use the debug overlay (backquote key or `?debug`) to check FPS, CPU and GPU time and draw calls.
@@ -75,7 +74,7 @@ Follow `docs/workflows/progress.md` (Claude Code: the `progress` skill):
 ## Testing rules
 
 - Pure logic (math, rules, data transforms) gets Vitest unit tests next to the file (`foo.ts` and `foo.test.ts`).
-- Player-facing behavior gets a Playwright test in `tests/e2e/`. Drive it through `window.__game` (see `src/engine/test-hook.ts`): open with `?test&seed=1&paused`, step time with `advance(n)`, read state with `inspect()`, trigger setups with `act(name, ...)`.
+- Player-facing behavior gets a Playwright test in `tests/e2e/`. Drive it through `window.__game` (see `src/engine/test-hook.ts`): open with `?test&seed=1&paused`, step time with `advance(n)`, read state with `inspect()`, trigger setups with `act(name, ...)`. Pointer lock and mouse look are simulated with the built-in `act('pointerLock', 1)` and `act('look', dx, dy)`.
 - Add whatever state a new feature needs to `inspect()` and any setup shortcuts to `actions` in `src/game/index.ts`.
 - Visual baselines live next to the specs. Changing them must be intentional.
 - Never weaken, skip or delete a test to make it pass. A flaky test is a bug: find the source of the nondeterminism.

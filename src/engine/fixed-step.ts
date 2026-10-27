@@ -23,6 +23,15 @@ export class FixedStep {
     return steps;
   }
 
+  /**
+   * How far the simulation has progressed into the next step, in [0, 1). The
+   * renderer blends the previous and current step by this to stay smooth on
+   * displays faster than the step rate.
+   */
+  get alpha(): number {
+    return this.accumulator / this.stepSeconds;
+  }
+
   reset(): void {
     this.accumulator = 0;
   }

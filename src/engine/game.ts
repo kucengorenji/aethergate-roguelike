@@ -1,8 +1,10 @@
 import { World } from 'miniplex';
 import * as THREE from 'three/webgpu';
+import { AudioEngine } from './audio';
 import type { CoreComponents } from './ecs';
 import { FixedStep } from './fixed-step';
 import { Input } from './input';
+import { Interpolator } from './interpolation';
 import { RollingStats } from './metrics';
 import type { LaunchParams } from './params';
 import { Physics } from './physics';
@@ -14,6 +16,7 @@ export interface GameContext<E extends CoreComponents, S> {
   /** Game-wide data that is not tied to an entity (score, phase, timers). */
   readonly state: S;
   readonly input: Input;
+  readonly audio: AudioEngine;
   readonly physics: Physics;
   readonly scene: THREE.Scene;
   readonly camera: THREE.PerspectiveCamera;
@@ -22,6 +25,13 @@ export interface GameContext<E extends CoreComponents, S> {
   dt: number;
   /** Number of fixed steps simulated so far. */
   tick: number;
+  /**
+   * Frame systems only: how far rendering is between the last two fixed steps,
+   * in [0, 1]. It is 1 while paused, so tests and screenshots see the latest step.
+   */
+  alpha: number;
+  /** Renders the entity where its body is now on the next frame, without blending. Use after teleports. */
+  snap: (entity: E) => void;
 }
 
 /**
@@ -52,6 +62,7 @@ export class Game<E extends CoreComponents, S> {
   private readonly fixedStep: FixedStep;
   private readonly clock = new THREE.Timer();
   private readonly afterRender: (() => void)[] = [];
+  private readonly interpolator: Interpolator<E>;
 
   private constructor(
     renderer: THREE.WebGPURenderer,
@@ -68,24 +79,35 @@ export class Game<E extends CoreComponents, S> {
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 500);
     const world = new World<E>();
+    const interpolator = new Interpolator(world);
+    this.interpolator = interpolator;
     world.onEntityAdded.subscribe((e) => {
       if (e.object3d) scene.add(e.object3d);
     });
     world.onEntityRemoved.subscribe((e) => {
       if (e.object3d) scene.remove(e.object3d);
       if (e.body) physics.world.removeRigidBody(e.body);
+      interpolator.forget(e);
     });
+
+    const input = new Input();
+    input.attachPointerLock(options.canvas);
 
     this.ctx = {
       world,
       state: options.state,
-      input: new Input(),
+      input,
+      audio: new AudioEngine(),
       physics,
       scene,
       camera,
       rng: new Rng(options.params.seed),
       dt: 0,
       tick: 0,
+      alpha: 1,
+      snap: (entity) => {
+        interpolator.snap(entity);
+      },
     };
   }
 
@@ -100,7 +122,11 @@ export class Game<E extends CoreComponents, S> {
     return this;
   }
 
-  /** Runs once per rendered frame (camera, UI, cosmetic animation). */
+  /**
+   * Runs once per rendered frame (camera, UI). Frame systems must be pure
+   * functions of simulation state and `ctx.alpha`, so paused screenshots stay
+   * deterministic; they never change gameplay state.
+   */
   addFrameSystem(system: System<E, S>): this {
     this.frameSystems.push(system);
     return this;
@@ -133,6 +159,8 @@ export class Game<E extends CoreComponents, S> {
     this.advance(steps);
 
     this.ctx.dt = frameSeconds;
+    this.ctx.alpha = this.paused ? 1 : this.fixedStep.alpha;
+    this.interpolator.apply(this.ctx.alpha);
     for (const system of this.frameSystems) system(this.ctx);
 
     this.ctx.physics.updateDebug();
@@ -144,9 +172,13 @@ export class Game<E extends CoreComponents, S> {
     const start = performance.now();
     const { ctx } = this;
     ctx.dt = this.fixedStep.stepSeconds;
+    ctx.input.beginStep();
     for (const system of this.fixedSystems) system(ctx);
     ctx.physics.step(ctx.dt);
-    syncBodiesToObjects(ctx.world);
+    for (const entity of ctx.world.with('animator')) {
+      (entity as Required<CoreComponents>).animator.update(ctx.dt);
+    }
+    this.interpolator.capture();
     ctx.input.endStep();
     ctx.tick++;
     this.stepTimes.push(performance.now() - start);
@@ -159,16 +191,5 @@ export class Game<E extends CoreComponents, S> {
     this.renderer.setSize(width, height, false);
     this.ctx.camera.aspect = width / Math.max(1, height);
     this.ctx.camera.updateProjectionMatrix();
-  }
-}
-
-function syncBodiesToObjects<E extends CoreComponents>(world: World<E>): void {
-  for (const entity of world.with('body', 'object3d')) {
-    // miniplex cannot narrow a generic E, so restate what with() guarantees.
-    const { body, object3d } = entity as Required<CoreComponents>;
-    const p = body.translation();
-    const r = body.rotation();
-    object3d.position.set(p.x, p.y, p.z);
-    object3d.quaternion.set(r.x, r.y, r.z, r.w);
   }
 }

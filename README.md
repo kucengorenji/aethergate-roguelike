@@ -26,7 +26,7 @@ pnpm dev
 ```
 
 Open http://localhost:5173.
-Until milestone M1 lands, this is still the starter demo: roll with WASD, jump with Space, restart with R, toggle debug with the backquote key.
+Click to lock the mouse, move with WASD, look with the mouse, reset with R, release the mouse with Esc, toggle debug with the backquote key.
 
 ## Working on the game
 

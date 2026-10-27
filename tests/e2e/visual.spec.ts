@@ -1,29 +1,24 @@
 import { expect, test } from '@playwright/test';
-import { advance, openGame } from './helpers';
+import { act, advance, hold, openGame, pixelsForRadians } from './helpers';
 
-// Deterministic scene: fixed seed, paused simulation, fixed number of steps.
+// Deterministic scenes: fixed seed, paused simulation, fixed number of steps.
 // Update baselines intentionally with `pnpm e2e:update` and review the diff.
-test('start scene matches the baseline', async ({ page }) => {
+test('arena from the shoulder at spawn', async ({ page }) => {
   await openGame(page);
   await advance(page, 60);
-  await expect(page).toHaveScreenshot('start-scene.png');
+  await expect(page).toHaveScreenshot('spawn-view.png');
 });
 
-test('win banner matches the baseline', async ({ page }) => {
+test('running mid-stride after turning', async ({ page }) => {
   await openGame(page);
+  await advance(page, 5);
+  await act(page, 'look', pixelsForRadians(-0.9), pixelsForRadians(-0.15));
+  await hold(page, 'KeyW', 37);
+  await expect(page).toHaveScreenshot('running-turned.png');
+});
+
+test('click-to-play prompt over the arena', async ({ page }) => {
+  await openGame(page, undefined, { lock: false });
   await advance(page, 30);
-  const { gems } = await page.evaluate(
-    () => window.__game!.inspect() as { gems: { x: number; z: number }[] },
-  );
-  for (const { x, z } of gems) {
-    await page.evaluate(
-      ([gx, gz]) => {
-        window.__game!.act('teleportPlayer', gx, 1, gz);
-      },
-      [x, z] as const,
-    );
-    await advance(page, 2);
-  }
-  await advance(page, 60);
-  await expect(page).toHaveScreenshot('win-banner.png');
+  await expect(page).toHaveScreenshot('lock-prompt.png');
 });

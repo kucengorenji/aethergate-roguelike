@@ -1,27 +1,62 @@
 /**
- * Tunables for the demo. Everything a designer might want to tweak lives here,
- * and the debug panel (backquote key) edits these values live.
+ * Tunables. Everything a designer might want to tweak lives here, and the debug
+ * panel (backquote key) edits these values live.
  */
 export const config = {
-  arena: { halfSize: 14, wallHeight: 1.2, wallThickness: 0.5 },
   player: {
-    radius: 0.5,
-    rollForce: 14,
-    maxSpeed: 9,
-    jumpImpulse: 4.5,
+    /** Capsule: total height is 2 * (halfHeight + radius). */
+    radius: 0.35,
+    halfHeight: 0.55,
+    walkSpeed: 5.5,
+    /** Multiplier when the input points backward. */
+    backSpeedFactor: 0.7,
+    /** m/s^2 toward the target velocity. High values feel snappy. */
+    acceleration: 45,
+    gravity: 25,
+    maxFallSpeed: 30,
+    stepHeight: 0.35,
     respawnBelowY: -10,
   },
-  gems: { count: 10, pickupRadius: 1.1, height: 0.9, spinSpeed: 2, bobAmplitude: 0.15 },
-  obstacles: { count: 6 },
-  camera: { offsetY: 10, offsetZ: 11, stiffness: 5 },
+  look: {
+    /** Radians per pixel of mouse movement. */
+    sensitivity: 0.0022,
+    minPitch: -0.75,
+    maxPitch: 0.9,
+  },
+  camera: {
+    fov: 65,
+    /** Distance behind the shoulder pivot. */
+    distance: 4.2,
+    /** Sideways offset of the pivot (positive is right shoulder). */
+    shoulder: 1.05,
+    /** Pivot height above the capsule center. */
+    height: 0.95,
+    /** Gap kept between the camera and a wall it pushes in front of. */
+    wallMargin: 0.25,
+  },
+  animation: {
+    /** Speed (m/s) at which the run clip plays at normal rate. */
+    runClipSpeed: 5.5,
+    /** Below this horizontal speed the character counts as standing. */
+    idleBelowSpeed: 0.4,
+    fadeSeconds: 0.15,
+  },
+  footsteps: { strideMeters: 1.55, volume: 0.35 },
   colors: {
-    sky: 0x1b2433,
-    ground: 0x3a4a5e,
-    wall: 0x55677f,
-    obstacle: 0x7a8ba3,
-    player: 0xf2b134,
-    playerStripe: 0x2b2b2b,
-    gem: 0x4fd1c5,
+    skyZenith: 0x8c8f99,
+    skyHorizon: 0xe9cf9b,
+    fog: 0xc9b48c,
+    floor: 0x8d8478,
+    wall: 0xb2a894,
+    pillar: 0xc4b89c,
+    cover: 0x9c917f,
+    trim: 0x7f776b,
+    sun: 0xffdcaa,
+    tree: 0xf7d98a,
+    robe: 0x5b4f66,
+    hood: 0x3d3446,
+    skin: 0xc7a984,
+    accent: 0xd8a548,
   },
 };
 

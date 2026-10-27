@@ -1,51 +1,63 @@
+import { Animator } from '@engine/animation';
 import { RAPIER } from '@engine/physics';
 import * as THREE from 'three/webgpu';
+import type { ArenaLayout } from '../arenas/graybox';
+import type { Entity } from '../components';
 import { config } from '../config';
 import type { Ctx } from '../types';
+import { createMannequin } from './mannequin';
 
-export const PLAYER_SPAWN = { x: 0, y: 1, z: 0 } as const;
+/** Height of the capsule center above the floor. */
+export const PLAYER_CENTER_Y = config.player.halfHeight + config.player.radius;
 
-export function spawnPlayer(ctx: Ctx): void {
-  const { radius } = config.player;
+export function spawnPlayer(ctx: Ctx, layout: ArenaLayout): Entity {
+  const { radius, halfHeight, stepHeight } = config.player;
+  const { x, z, yaw } = layout.spawn;
   const body = ctx.physics.world.createRigidBody(
-    RAPIER.RigidBodyDesc.dynamic()
-      .setTranslation(PLAYER_SPAWN.x, PLAYER_SPAWN.y, PLAYER_SPAWN.z)
-      .setLinearDamping(0.4)
-      .setAngularDamping(0.8)
-      .setCcdEnabled(true),
+    RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(x, PLAYER_CENTER_Y, z),
   );
-  ctx.physics.world.createCollider(
-    RAPIER.ColliderDesc.ball(radius).setFriction(1.2).setRestitution(0.2).setDensity(1),
+  const collider = ctx.physics.world.createCollider(
+    RAPIER.ColliderDesc.capsule(halfHeight, radius),
     body,
   );
+  const controller = ctx.physics.world.createCharacterController(0.02);
+  controller.enableAutostep(stepHeight, 0.2, false);
+  controller.enableSnapToGround(0.3);
+  controller.setMaxSlopeClimbAngle((50 * Math.PI) / 180);
+  controller.setApplyImpulsesToDynamicBodies(true);
 
-  const mesh = new THREE.Mesh(
-    new THREE.SphereGeometry(radius, 32, 16),
-    new THREE.MeshStandardMaterial({ map: stripeTexture(), roughness: 0.4 }),
-  );
-  mesh.castShadow = true;
-  ctx.world.add({ player: true, body, object3d: mesh });
+  const { root: model, clips } = createMannequin();
+  model.position.y = -PLAYER_CENTER_Y;
+  model.rotation.y = yaw;
+  const object3d = new THREE.Group();
+  object3d.add(model);
+  const animator = new Animator(model, clips);
+  animator.play('idle', 0);
+
+  return ctx.world.add({
+    player: true,
+    body,
+    object3d,
+    model,
+    animator,
+    characterController: { controller, collider },
+    look: { yaw, pitch: 0 },
+    locomotion: { velocity: { x: 0, y: 0, z: 0 }, grounded: false, speed: 0, direction: 0 },
+    footsteps: { distance: 0 },
+  });
 }
 
-export function resetPlayer(body: RAPIER.RigidBody): void {
-  body.setTranslation(PLAYER_SPAWN, true);
-  body.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true);
-  body.setLinvel({ x: 0, y: 0, z: 0 }, true);
-  body.setAngvel({ x: 0, y: 0, z: 0 }, true);
-}
-
-/** Stripes make rolling readable on an otherwise featureless sphere. */
-function stripeTexture(): THREE.Texture {
-  const canvas = document.createElement('canvas');
-  canvas.width = 64;
-  canvas.height = 32;
-  const g = canvas.getContext('2d')!;
-  g.fillStyle = `#${config.colors.player.toString(16).padStart(6, '0')}`;
-  g.fillRect(0, 0, 64, 32);
-  g.fillStyle = `#${config.colors.playerStripe.toString(16).padStart(6, '0')}`;
-  g.fillRect(0, 13, 64, 6);
-  g.fillRect(28, 0, 8, 32);
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
+/** Puts the player back at spawn, standing still and facing the spawn direction. */
+export function resetPlayer(ctx: Ctx, player: Entity, layout: ArenaLayout): void {
+  const { body, look, locomotion } = player;
+  if (!body || !look || !locomotion) return;
+  const spawn = { x: layout.spawn.x, y: PLAYER_CENTER_Y, z: layout.spawn.z };
+  body.setTranslation(spawn, true);
+  body.setNextKinematicTranslation(spawn);
+  look.yaw = layout.spawn.yaw;
+  look.pitch = 0;
+  Object.assign(locomotion.velocity, { x: 0, y: 0, z: 0 });
+  locomotion.speed = 0;
+  locomotion.direction = 0;
+  ctx.snap(player);
 }

@@ -1,6 +1,6 @@
 # 0001: Gem roller demo
 
-Status: done
+Status: superseded (replaced by spec 0002 in M1)
 Owner: starter
 
 ## Problem

@@ -1,73 +1,95 @@
 import { installDebugOverlay } from '@engine/debug/overlay';
 import { Game } from '@engine/game';
 import type { LaunchParams } from '@engine/params';
+import { noiseBurst } from '@engine/synth';
 import { installTestHook } from '@engine/test-hook';
+import { grayboxArena } from './arenas/graybox';
 import type { Entity } from './components';
 import { config } from './config';
-import { spawnGems } from './entities/gem';
-import { spawnLevel } from './entities/level';
-import { spawnPlayer } from './entities/player';
+import { spawnArena } from './entities/level';
+import { resetPlayer, spawnPlayer } from './entities/player';
 import { createState, type GameState } from './state';
-import { cameraFollowSystem } from './systems/camera-follow';
-import { collectSystem } from './systems/collect';
-import { gemAnimationSystem } from './systems/gem-animation';
-import { playerControlSystem } from './systems/player-control';
+import { footstepsSystem } from './systems/footsteps';
+import { locomotionSystem } from './systems/locomotion';
+import { lookSystem } from './systems/look';
+import { playerAnimationSystem } from './systems/player-animation';
+import { playerFacingSystem } from './systems/player-facing';
 import { restartSystem } from './systems/restart';
 import { timerSystem } from './systems/timer';
+import { tpsCameraSystem } from './systems/tps-camera';
 import { createHudSystem } from './ui/hud';
 
-/** Composition root of the demo: spawn entities, register systems in order. */
-export async function createDemoGame(
+/** Composition root: spawn entities, register sounds and systems in order. */
+export async function createGame(
   canvas: HTMLCanvasElement,
   params: LaunchParams,
 ): Promise<Game<Entity, GameState>> {
   const game = await Game.create<Entity, GameState>({ canvas, params, state: createState() });
   const { ctx } = game;
 
-  spawnLevel(ctx);
-  spawnPlayer(ctx);
-  spawnGems(ctx);
-  ctx.camera.position.set(0, config.camera.offsetY, config.camera.offsetZ);
-  ctx.camera.lookAt(0, 0, 0);
+  ctx.camera.fov = config.camera.fov;
+  ctx.camera.updateProjectionMatrix();
+  ctx.audio.register('step', noiseBurst({ duration: 0.11, decay: 38, smoothing: 0.88, gain: 0.6 }));
+
+  spawnArena(ctx, grayboxArena);
+  const player = spawnPlayer(ctx, grayboxArena);
 
   game
     .addFixedSystem(restartSystem)
-    .addFixedSystem(playerControlSystem)
-    .addFixedSystem(collectSystem)
+    .addFixedSystem(lookSystem)
+    .addFixedSystem(locomotionSystem)
+    .addFixedSystem(playerAnimationSystem)
+    .addFixedSystem(footstepsSystem)
     .addFixedSystem(timerSystem)
-    .addFixedSystem(gemAnimationSystem)
-    .addFixedSystem(cameraFollowSystem)
+    .addFrameSystem(playerFacingSystem)
+    .addFrameSystem(tpsCameraSystem)
     .addFrameSystem(createHudSystem());
 
   installDebugOverlay(game, ({ gui }) => {
-    const player = gui.addFolder('Player');
-    player.add(config.player, 'rollForce', 2, 40);
-    player.add(config.player, 'maxSpeed', 2, 20);
-    player.add(config.player, 'jumpImpulse', 0, 12);
-    const camera = gui.addFolder('Camera');
-    camera.add(config.camera, 'offsetY', 2, 30);
-    camera.add(config.camera, 'offsetZ', 2, 30);
-    camera.add(config.camera, 'stiffness', 0.5, 20);
+    const p = gui.addFolder('Player');
+    p.add(config.player, 'walkSpeed', 1, 12);
+    p.add(config.player, 'acceleration', 5, 120);
+    p.add(config.player, 'backSpeedFactor', 0.3, 1);
+    const look = gui.addFolder('Look');
+    look.add(config.look, 'sensitivity', 0.0005, 0.006);
+    const cam = gui.addFolder('Camera');
+    cam.add(config.camera, 'distance', 1.5, 8);
+    cam.add(config.camera, 'shoulder', -1.5, 1.5);
+    cam.add(config.camera, 'height', 0, 1.5);
+    cam.add(config.camera, 'fov', 40, 100).onChange((fov: number) => {
+      ctx.camera.fov = fov;
+      ctx.camera.updateProjectionMatrix();
+    });
   });
 
   installTestHook(game, {
     inspect: () => {
-      const p = ctx.world.with('player', 'body').first?.body.translation();
+      const { body, look, locomotion, animator } = player;
+      const p = body!.translation();
+      const c = ctx.camera.position;
       return {
-        ...ctx.state,
-        gemsLeft: ctx.world.with('gem').size,
-        player: p ? { x: p.x, y: p.y, z: p.z } : null,
-        gems: [...ctx.world.with('gem', 'object3d')].map(({ object3d: o }) => ({
-          x: o.position.x,
-          z: o.position.z,
-        })),
+        elapsed: ctx.state.elapsed,
+        locked: ctx.input.locked,
+        player: { x: p.x, y: p.y, z: p.z },
+        look: { ...look! },
+        grounded: locomotion!.grounded,
+        speed: locomotion!.speed,
+        animation: animator!.current,
+        camera: { x: c.x, y: c.y, z: c.z },
       };
     },
     actions: {
       teleportPlayer: (x, y, z) => {
-        const body = ctx.world.with('player', 'body').first?.body;
-        body?.setTranslation({ x, y, z }, true);
-        body?.setLinvel({ x: 0, y: 0, z: 0 }, true);
+        player.body!.setTranslation({ x, y, z }, true);
+        player.body!.setNextKinematicTranslation({ x, y, z });
+        Object.assign(player.locomotion!.velocity, { x: 0, y: 0, z: 0 });
+        ctx.snap(player);
+      },
+      setLook: (yaw, pitch = 0) => {
+        Object.assign(player.look!, { yaw, pitch });
+      },
+      resetPlayer: () => {
+        resetPlayer(ctx, player, grayboxArena);
       },
     },
   });

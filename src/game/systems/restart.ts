@@ -1,18 +1,15 @@
-import { spawnGems } from '../entities/gem';
+import { grayboxArena } from '../arenas/graybox';
+import { config } from '../config';
 import { resetPlayer } from '../entities/player';
-import type { Ctx, GameSystem } from '../types';
+import type { GameSystem } from '../types';
 
-/** R restarts the round at any time; Enter also restarts after winning. */
+/** R resets the player to spawn; falling out of the world does too. */
 export const restartSystem: GameSystem = (ctx) => {
-  const { input, state } = ctx;
-  if (input.wasPressed('KeyR') || (state.phase === 'won' && input.wasPressed('Enter'))) {
-    restartRound(ctx);
+  const reset = ctx.input.wasPressed('KeyR');
+  for (const player of ctx.world.with('player', 'body')) {
+    if (reset || player.body.translation().y < config.player.respawnBelowY) {
+      resetPlayer(ctx, player, grayboxArena);
+      ctx.state.elapsed = 0;
+    }
   }
 };
-
-export function restartRound(ctx: Ctx): void {
-  for (const gem of [...ctx.world.with('gem')]) ctx.world.remove(gem);
-  for (const { body } of ctx.world.with('player', 'body')) resetPlayer(body);
-  Object.assign(ctx.state, { phase: 'playing', score: 0, elapsed: 0 });
-  spawnGems(ctx);
-}

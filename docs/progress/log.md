@@ -7,6 +7,9 @@ See `docs/workflows/progress.md`.
 
 ## 2026-10-27
 
+- M1: All M1 tasks built (spec 0002 done): pointer lock and mouse look, render interpolation, kinematic controller with autostep, shoulder camera with push-in, Animator, audio with synthesized footsteps, graybox courtyard. Verify green, 41 unit and 13 E2E tests. Exit check waits for a human playtest with a real mouse.
+- M1: Fixed: Rapier autostep ignored the 0.3 m dais while any downward speed was requested; grounded vertical speed is now 0.
+- M1: Tuned camera framing and golden-hour lighting after screenshots showed the character covering the crosshair and faces toward the camera nearly black.
 - M1: Started M1 on branch `feat/m1-tps-graybox`, writing spec 0002 (engine foundations) and spec 0003 (TPS graybox).
 - M0: Initial commit `bfe8fbe` on `main`, hooks (format, lint, typecheck, commitlint) passed. M0 done.
 - M0: Reviewed setup again, verify green with 19 unit and 6 E2E tests, dashboard checked at desktop, light theme and phone width.
