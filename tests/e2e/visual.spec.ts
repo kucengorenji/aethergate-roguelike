@@ -10,10 +10,12 @@ import {
   KIND,
   openGame,
   pixelsForRadians,
+  QUALITY,
   REWARD,
   RUN,
   SANDBOX,
   shootOnce,
+  STAFF,
   STATION,
 } from './helpers';
 
@@ -209,4 +211,52 @@ test('the Starfallen Knight calling meteors', async ({ page }) => {
   await act(page, 'freezeEnemies', 1);
   await advance(page, 40);
   await expect(page).toHaveScreenshot('boss-meteors.png');
+});
+
+// Effects (spec 0014).
+test('a Lance bolt and its trail in flight', async ({ page }) => {
+  await openGame(page);
+  await act(page, 'setStaff', STAFF.lance);
+  await act(page, 'aimAt', 0, 2, -30);
+  await page.mouse.down();
+  await advance(page, 1);
+  await page.mouse.up();
+  // Turn away after the cast, so the trail is seen from the side.
+  await act(page, 'look', pixelsForRadians(0.7), 0);
+  await advance(page, 4);
+  await expect(page).toHaveScreenshot('lance-trail.png');
+});
+
+test('a soldier rising while the Captain breaks into ash', async ({ page }) => {
+  await openGame(page, SANDBOX);
+  await act(page, 'spawnEnemy', KIND.captain, 2.5, 8);
+  await act(page, 'killAllEnemies');
+  await act(page, 'spawnEnemy', KIND.soldier, -2, 8, 1);
+  await advance(page, 24);
+  await expect(page).toHaveScreenshot('spawn-and-death.png');
+});
+
+test("the burning edge in the Starfallen Knight's last phase", async ({ page }) => {
+  await openGame(page, SANDBOX);
+  await act(page, 'spawnEnemy', KIND.starfallen, 0, 6);
+  await act(page, 'setEnemyHealth', 0, 300);
+  await advanceUntil(page, (s) => s.burnRing !== null, 240);
+  await act(page, 'freezeEnemies', 1);
+  await advance(page, 60);
+  await expect(page).toHaveScreenshot('burning-edge.png');
+});
+
+test('wave fight with a telegraph at Low quality', async ({ page }) => {
+  await openGame(page, SANDBOX);
+  await act(page, 'setQuality', QUALITY.low);
+  await act(page, 'spawnEnemy', KIND.knight, 0, 9);
+  await act(page, 'spawnEnemy', KIND.soldier, -3.5, 7);
+  await act(page, 'spawnEnemy', KIND.caster, 5, 4);
+  await advanceUntil(
+    page,
+    (s) => s.enemies.some((e) => e.kind === 'knight' && e.state === 'windup'),
+    240,
+  );
+  await advance(page, 25);
+  await expect(page).toHaveScreenshot('wave-fight-low.png');
 });
