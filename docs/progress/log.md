@@ -7,6 +7,7 @@ See `docs/workflows/progress.md`.
 
 ## 2026-10-27
 
+- M4: Spec 0006 done: the Ash Comet on right click (6 s cooldown, 3 m burst, knockback, HUD cooldown ring) with an element slot for boons. Verify green, 116 unit and 60 E2E tests.
 - M4: Spec 0005 done: seeded 8-room runs over 9 layouts, reward tokens, doors with reward previews, fades, run complete and new runs. Verify green, 112 unit and 53 E2E tests.
 - --: E2E suite 2.5 min to 44 s: paused test sessions render only on request, because each software-rendered frame (~130 ms) blocked test round trips.
 - M4: Asset spike 0009 started in parallel by a second agent in a Herdr pane, in worktree `~/aethergate-asset-spike`.

@@ -16,6 +16,7 @@ import { spawnTotem } from './entities/totem';
 import { createState, type GameState, type Mode } from './state';
 import { actionsSystem } from './systems/actions';
 import { castSystem, focusSystem } from './systems/cast';
+import { skillSystem } from './systems/skill';
 import { deathSystem } from './systems/death';
 import { dummySystem } from './systems/dummy';
 import { enemyAiSystem } from './systems/enemy-ai';
@@ -83,6 +84,7 @@ export async function createGame(
     .addFixedSystem(actionsSystem)
     .addFixedSystem(locomotionSystem)
     .addFixedSystem(castSystem)
+    .addFixedSystem(skillSystem)
     .addFixedSystem(focusSystem)
     .addFixedSystem(totemSystem)
     .addFixedSystem(enemyAiSystem)
@@ -151,6 +153,7 @@ export async function createGame(
         invulnerable: health!.invulnerable > 0,
         focus: caster!.focus,
         flasks: flask!.charges,
+        skillCooldown: player.skill!.cooldown,
         action: action!.kind,
         dummy:
           dummy && d
@@ -323,11 +326,14 @@ function readMode(): Mode {
   return mode === 'training' || mode === 'sandbox' || mode === 'encounter' ? mode : 'run';
 }
 
-function aliveProjectiles(pool: GameState['projectiles']): { x: number; y: number; z: number }[] {
+function aliveProjectiles(
+  pool: GameState['projectiles'],
+): { x: number; y: number; z: number; kind: number }[] {
   const list = [];
   for (let i = 0; i < pool.capacity; i++) {
-    if (pool.alive[i])
-      list.push({ x: pool.pos[i * 3]!, y: pool.pos[i * 3 + 1]!, z: pool.pos[i * 3 + 2]! });
+    if (!pool.alive[i]) continue;
+    const o = i * 3;
+    list.push({ x: pool.pos[o]!, y: pool.pos[o + 1]!, z: pool.pos[o + 2]!, kind: pool.kind[i]! });
   }
   return list;
 }
@@ -372,6 +378,11 @@ function registerSounds(audio: Game<Entity, GameState>['ctx']['audio']): void {
   audio.register(
     'door',
     noiseBurst({ duration: 0.6, decay: 5, smoothing: 0.97, gain: 0.6, seed: 8 }),
+  );
+  audio.register('comet', sweep({ duration: 0.45, from: 260, to: 120, decay: 5, gain: 0.55 }));
+  audio.register(
+    'burst',
+    noiseBurst({ duration: 0.7, decay: 6, smoothing: 0.93, gain: 0.9, seed: 9 }),
   );
   audio.register('cleared', sweep({ duration: 1.2, from: 330, to: 880, decay: 2.2, gain: 0.45 }));
 }

@@ -18,14 +18,17 @@ export function createProjectileRenderSystem(ctx: Ctx): GameSystem {
   const capacity = ctx.state.projectiles.capacity;
   const bolts = instanced(new THREE.IcosahedronGeometry(1, 0), config.colors.bolt, capacity);
   const orbs = instanced(new THREE.IcosahedronGeometry(1, 1), config.colors.orb, capacity);
+  const comets = instanced(new THREE.IcosahedronGeometry(1, 1), config.colors.comet, 16);
   const boltBursts = instanced(new THREE.IcosahedronGeometry(1, 1), config.colors.bolt, 64);
   const orbBursts = instanced(new THREE.IcosahedronGeometry(1, 1), config.colors.orb, 64);
-  for (const mesh of [bolts, orbs, boltBursts, orbBursts]) ctx.scene.add(mesh);
+  const cometBursts = instanced(new THREE.IcosahedronGeometry(1, 2), config.colors.comet, 16, 0.45);
+  for (const mesh of [bolts, orbs, comets, boltBursts, orbBursts, cometBursts]) ctx.scene.add(mesh);
 
   return ({ state, alpha }) => {
     const pool: ProjectilePool = state.projectiles;
     let nb = 0;
     let no = 0;
+    let nc = 0;
     for (let i = 0; i < pool.capacity; i++) {
       if (!pool.alive[i]) continue;
       const o = i * 3;
@@ -40,6 +43,9 @@ export function createProjectileRenderSystem(ctx: Ctx): GameSystem {
         const vr = r * config.bolt.visualScale;
         scale.set(vr, vr, vr * 3.5);
         bolts.setMatrixAt(nb++, m.compose(p, q, scale));
+      } else if (pool.kind[i] === ProjectileKind.Comet) {
+        scale.set(r * 1.4, r * 1.4, r * 2.6);
+        comets.setMatrixAt(nc++, m.compose(p, q, scale));
       } else {
         scale.setScalar(r);
         orbs.setMatrixAt(no++, m.compose(p, q.identity(), scale));
@@ -70,8 +76,15 @@ function instanced(
   geometry: THREE.BufferGeometry,
   color: number,
   count: number,
+  opacity = 1,
 ): THREE.InstancedMesh {
-  const mesh = new THREE.InstancedMesh(geometry, new THREE.MeshBasicMaterial({ color }), count);
+  const material = new THREE.MeshBasicMaterial({
+    color,
+    transparent: opacity < 1,
+    opacity,
+    depthWrite: opacity === 1,
+  });
+  const mesh = new THREE.InstancedMesh(geometry, material, count);
   mesh.count = 0;
   // Instances move every frame and spread over the arena; culling the whole set is wrong.
   mesh.frustumCulled = false;

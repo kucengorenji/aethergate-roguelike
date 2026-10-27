@@ -1,3 +1,4 @@
+import { burst } from '../combat/burst';
 import { applyDamage } from '../combat/damage';
 import { WORLD_RAYS } from '../combat/groups';
 import { sweepSphereCapsule } from '../combat/hit';
@@ -21,6 +22,10 @@ export const projectilesSystem: GameSystem = (ctx) => {
     if (!pool.alive[i]) continue;
     pool.life[i]! -= dt;
     if (pool.life[i]! <= 0) {
+      // A comet's fuse ends at its aim point: it bursts there instead of fading.
+      if (pool.kind[i] === ProjectileKind.Comet) {
+        burst(ctx, pool.pos[i * 3]!, pool.pos[i * 3 + 1]!, pool.pos[i * 3 + 2]!);
+      }
       pool.release(i);
       continue;
     }
@@ -80,7 +85,10 @@ export const projectilesSystem: GameSystem = (ctx) => {
     const hx = ax + mx * bestT;
     const hy = ay + my * bestT;
     const hz = az + mz * bestT;
-    if (hitTarget) {
+    if ((hitTarget || hitWall) && pool.kind[i] === ProjectileKind.Comet) {
+      burst(ctx, hx, hy, hz);
+      pool.release(i);
+    } else if (hitTarget) {
       applyDamage(ctx, hitTarget, pool.damage[i]!, { from: { x: ax, z: az } });
       impact(ctx, hx, hy, hz, pool.kind[i]!);
       pool.release(i);

@@ -5,6 +5,8 @@ import type { Offer, Reward } from './run/rewards';
 
 export type ActionKind = 'none' | 'dodge' | 'bash' | 'drink';
 export type EnemyKind = 'soldier' | 'caster' | 'knight' | 'hound';
+/** Demigod elements that boons (spec 0007) add to attacks. */
+export type Element = 'frost' | 'gravity' | 'rot' | 'storm';
 export type EnemyState = 'rising' | 'chase' | 'windup' | 'attack' | 'recover' | 'stagger' | 'dying';
 
 /** All components in the game. Add new optional fields here as the game grows. */
@@ -58,6 +60,8 @@ export interface Entity extends CoreComponents {
     dodgeCooldown: number;
   };
   flask?: { charges: number; max: number };
+  /** The Ash skill on right click. */
+  skill?: { kind: 'comet'; element: Element | null; cooldown: number; maxCooldown: number };
   /** Seconds left of the white hit flash; materials listed are tinted. */
   flash?: { time: number; materials: THREE.MeshStandardMaterial[] };
   dummy?: {

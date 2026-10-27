@@ -50,6 +50,7 @@ export function spawnPlayer(ctx: Ctx, layout: ArenaLayout): Entity {
     caster: { focus: config.focus.max, maxFocus: config.focus.max, cooldown: 0, sinceCast: 99 },
     action: { kind: 'none', time: 0, dirX: 0, dirZ: -1, applied: false, dodgeCooldown: 0 },
     flask: { charges: config.flask.charges, max: config.flask.charges },
+    skill: { kind: 'comet', element: null, cooldown: 0, maxCooldown: config.comet.cooldown },
   });
 }
 
@@ -77,5 +78,6 @@ export function resetPlayer(ctx: Ctx, player: Entity, layout: ArenaLayout): void
   if (player.action)
     Object.assign(player.action, { kind: 'none', time: 0, applied: false, dodgeCooldown: 0 });
   if (player.flask) player.flask.charges = player.flask.max;
+  if (player.skill) player.skill.cooldown = 0;
   ctx.snap(player);
 }

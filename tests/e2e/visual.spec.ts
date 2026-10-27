@@ -86,3 +86,16 @@ test('grace room with its reward', async ({ page }) => {
   await advance(page, 30);
   await expect(page).toHaveScreenshot('grace-room.png');
 });
+
+test('comet burst', async ({ page }) => {
+  await openGame(page, SANDBOX);
+  await act(page, 'freezeEnemies', 1);
+  await act(page, 'spawnEnemy', KIND.soldier, -1.2, 6);
+  await act(page, 'spawnEnemy', KIND.hound, 1.2, 6);
+  await act(page, 'aimAt', 0, 0.05, 5.6);
+  await page.mouse.down({ button: 'right' });
+  await advanceUntil(page, (s) => s.enemies.every((e) => e.health < 30), 60);
+  await page.mouse.up({ button: 'right' });
+  await advance(page, 3);
+  await expect(page).toHaveScreenshot('comet-burst.png');
+});

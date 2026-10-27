@@ -1,4 +1,4 @@
-export const ProjectileKind = { Bolt: 0, Orb: 1 } as const;
+export const ProjectileKind = { Bolt: 0, Orb: 1, Comet: 2 } as const;
 export type ProjectileKind = (typeof ProjectileKind)[keyof typeof ProjectileKind];
 
 export const Team = { Player: 0, Enemy: 1 } as const;

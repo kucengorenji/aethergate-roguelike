@@ -42,7 +42,8 @@ export interface Snapshot {
   doors: { index: number; offer: string; open: boolean; x: number; z: number }[];
   pickups: { reward: string; x: number; z: number }[];
   projectiles: number;
-  projectileList: Vec3[];
+  projectileList: (Vec3 & { kind: number })[];
+  skillCooldown: number;
   damageNumbers: number;
   timeScale: number;
   stats: { casts: number; hits: number };

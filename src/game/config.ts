@@ -57,6 +57,19 @@ export const config = {
     /** Drawn size relative to the hit radius, so bolts read at range. */
     visualScale: 2,
   },
+  comet: {
+    speed: 22,
+    damage: 35,
+    /** Burst radius, m. */
+    radius: 3,
+    knockback: 8,
+    cooldown: 6,
+    /** Collision radius of the comet itself. */
+    size: 0.3,
+    maxRange: 40,
+    castKick: 0.035,
+    burstShake: 0.16,
+  },
   /** Staff tip relative to the capsule center, in the look frame. */
   muzzle: { right: 0.42, up: 0.55, forward: 0.6 },
   aim: { maxDistance: 120 },
@@ -202,6 +215,7 @@ export const config = {
     accent: 0xd8a548,
     bolt: 0x7cc8ff,
     orb: 0xff8a3d,
+    comet: 0xffa04a,
     dummy: 0xb08d5b,
     soldier: 0x5d5148,
     caster: 0x3f4a3a,

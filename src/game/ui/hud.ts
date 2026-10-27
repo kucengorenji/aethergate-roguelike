@@ -15,6 +15,7 @@ export function createHudSystem(): GameSystem {
   const hpText = $('hp-text');
   const focusFill = $('focus-fill');
   const flasks = $('flasks');
+  const skillIcon = $('skill');
   const death = $('death');
   const hurt = $('hurt');
   const wave = $('wave');
@@ -35,7 +36,7 @@ export function createHudSystem(): GameSystem {
 
   return (ctx) => {
     const { input, state, world } = ctx;
-    const player = world.with('player', 'health', 'caster', 'flask').first;
+    const player = world.with('player', 'health', 'caster', 'flask', 'skill').first;
     const dead = state.phase === 'dead';
     set('lock', String(input.locked || dead), () => {
       prompt.hidden = input.locked || dead;
@@ -109,7 +110,12 @@ export function createHudSystem(): GameSystem {
       hurt.style.opacity = state.feedback.hurt.toFixed(2);
     });
     if (!player) return;
-    const { health, caster, flask } = player;
+    const { health, caster, flask, skill } = player;
+    const ready = 1 - skill.cooldown / skill.maxCooldown;
+    set('skill', ready.toFixed(2), () => {
+      skillIcon.style.setProperty('--ready', ready.toFixed(3));
+      skillIcon.classList.toggle('ready', skill.cooldown <= 0);
+    });
     set('hp', `${Math.ceil(health.current)}/${health.max}`, () => {
       hpFill.style.width = `${(health.current / health.max) * 100}%`;
       hpText.textContent = `${Math.ceil(health.current)}`;
